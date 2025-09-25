@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:delidash/page/AddAddessPage.dart';
+import 'package:image_picker/image_picker.dart';
 
 class Registeruser extends StatefulWidget {
   const Registeruser({super.key});
@@ -10,6 +13,18 @@ class Registeruser extends StatefulWidget {
 }
 
 class _RegisteruserState extends State<Registeruser> {
+  File? _profileImage;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage() async {
+    final XFile? picked = await _picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() {
+        _profileImage = File(picked.path);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,17 +35,29 @@ class _RegisteruserState extends State<Registeruser> {
             child: Column(
               children: [
                 // Upload Profile
-                Container(
-                  width: 140,
-                  height: 140,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white24,
-                  ),
-                  child: const Icon(
-                    Icons.upload,
-                    size: 60,
-                    color: Colors.white,
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: Container(
+                    width: 140,
+                    height: 140,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white24,
+                    ),
+                    child: _profileImage == null
+                        ? const Icon(
+                            Icons.upload,
+                            size: 60,
+                            color: Colors.white,
+                          )
+                        : ClipOval(
+                            child: Image.file(
+                              _profileImage!,
+                              width: 140,
+                              height: 140,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                   ),
                 ),
 

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:delidash/firebase_options.dart';
+import 'package:delidash/page/AddAddessPage.dart';
 import 'package:delidash/page/choseregister.dart';
 import 'package:delidash/page/loginpage.dart';
 import 'package:delidash/page/registeruser.dart';
@@ -28,7 +29,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const Registeruser(),
+      home: const AddAddressPage(),
     );
   }
 }
