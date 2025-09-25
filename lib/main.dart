@@ -1,3 +1,6 @@
+import 'package:delidash/page/choseregister.dart';
+import 'package:delidash/page/loginpage.dart';
+import 'package:delidash/page/registeruser.dart';
 import 'package:flutter/material.dart';
 import 'package:delidash/page/Fritspage.dart';
 
@@ -16,7 +19,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const Fritspage(),
+      home: const Registeruser(),
     );
   }
 }
