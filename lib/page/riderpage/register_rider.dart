@@ -18,7 +18,7 @@ class _RegisterRiderPageState extends State<RegisterRiderPage> {
       TextEditingController();
   final TextEditingController vehiclePlateController = TextEditingController();
 
-  bool _isVehicleUploaded = false; // ✅ เก็บสถานะอัปโหลดยานพาหนะ
+  bool _isVehicleUploaded = false; // สถานะปุ่มอัปโหลดรูป
 
   @override
   Widget build(BuildContext context) {
@@ -29,10 +29,22 @@ class _RegisterRiderPageState extends State<RegisterRiderPage> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                // Upload Profile
+                const SizedBox(height: 20),
+
+                // ปุ่มอัปโหลดรูปโปรไฟล์ (ยังไม่บังคับ)
                 GestureDetector(
-                  onTap: () {
-                    // TODO: ทำให้กดอัปโหลดรูปโปรไฟล์ได้เหมือน Registeruser
+                  onTap: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const UploadVehiclePage(),
+                      ),
+                    );
+
+                    // เปลี่ยนไอคอนเมื่อกลับมา
+                    setState(() {
+                      _isVehicleUploaded = true;
+                    });
                   },
                   child: Container(
                     width: 140,
@@ -41,8 +53,10 @@ class _RegisterRiderPageState extends State<RegisterRiderPage> {
                       shape: BoxShape.circle,
                       color: Colors.white24,
                     ),
-                    child: const Icon(
-                      Icons.cloud_upload,
+                    child: Icon(
+                      _isVehicleUploaded
+                          ? Icons.check_circle
+                          : Icons.cloud_upload,
                       size: 60,
                       color: Colors.white,
                     ),
@@ -65,7 +79,12 @@ class _RegisterRiderPageState extends State<RegisterRiderPage> {
                 const SizedBox(height: 30),
 
                 // ช่องกรอกข้อมูล
-                _buildTextField("ชื่อ", "กรอกชื่อ", nameController),
+                _buildTextField(
+                  "ชื่อ",
+                  "กรอกชื่อ",
+                  nameController,
+                  keyboard: TextInputType.text,
+                ),
                 const SizedBox(height: 15),
                 _buildTextField(
                   "เบอร์โทร",
@@ -79,6 +98,7 @@ class _RegisterRiderPageState extends State<RegisterRiderPage> {
                   "กรอกรหัสผ่าน",
                   passwordController,
                   obscure: true,
+                  keyboard: TextInputType.text,
                 ),
                 const SizedBox(height: 15),
                 _buildTextField(
@@ -86,14 +106,15 @@ class _RegisterRiderPageState extends State<RegisterRiderPage> {
                   "กรอกยืนยันรหัสผ่าน",
                   confirmPasswordController,
                   obscure: true,
+                  keyboard: TextInputType.text,
                 ),
                 const SizedBox(height: 15),
                 _buildTextField(
                   "ทะเบียนรถ",
                   "กรอกทะเบียนรถ",
                   vehiclePlateController,
+                  keyboard: TextInputType.text,
                 ),
-
                 const SizedBox(height: 20),
 
                 // ปุ่มอัปโหลดรูปยานพาหนะ
@@ -110,18 +131,16 @@ class _RegisterRiderPageState extends State<RegisterRiderPage> {
                         padding: const EdgeInsets.symmetric(vertical: 15),
                       ),
                       onPressed: () async {
-                        final result = await Navigator.push(
+                        await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => const UploadVehiclePage(),
                           ),
                         );
 
-                        if (result == true) {
-                          setState(() {
-                            _isVehicleUploaded = true;
-                          });
-                        }
+                        setState(() {
+                          _isVehicleUploaded = true;
+                        });
                       },
                       icon: Icon(
                         _isVehicleUploaded
@@ -180,6 +199,8 @@ class _RegisterRiderPageState extends State<RegisterRiderPage> {
                     ),
                   ),
                 ),
+
+                const SizedBox(height: 30),
               ],
             ),
           ),
@@ -188,6 +209,7 @@ class _RegisterRiderPageState extends State<RegisterRiderPage> {
     );
   }
 
+  // ฟังก์ชันสร้าง TextField
   Widget _buildTextField(
     String label,
     String hint,
