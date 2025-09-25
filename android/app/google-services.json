@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "734906028647",
+    "project_id": "appdelidash-flutter",
+    "storage_bucket": "appdelidash-flutter.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:734906028647:android:5eee6ad73fe8ee161a7ac2",
+        "android_client_info": {
+          "package_name": "com.example.delidash"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBtSjeYsme4uzKunxImXmBpo6J-helnkoA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
