@@ -1,3 +1,5 @@
+import 'package:delidash/page/choseregister.dart';
+import 'package:delidash/page/loginpage.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'riderpage/register_rider.dart';
@@ -58,7 +60,12 @@ class _FritspageState extends State<Fritspage> {
                   const SizedBox(height: 30),
                   ElevatedButton(
                     onPressed: () {
-                      // ปุ่มเข้าสู่ระบบ
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const Loginpage(),
+                        ),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF65176C),
@@ -79,7 +86,7 @@ class _FritspageState extends State<Fritspage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const RegisterRiderPage(),
+                          builder: (context) => const Choseregister(),
                         ),
                       );
                     },
