@@ -1,3 +1,6 @@
+import 'package:delidash/page/loginpage.dart';
+import 'package:delidash/page/registeruser.dart';
+import 'package:delidash/page/riderpage/register_rider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -56,7 +59,14 @@ class _ChoseregisterState extends State<Choseregister> {
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const Registeruser(),
+                          ),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF65176C),
                         shape: RoundedRectangleBorder(
@@ -84,7 +94,14 @@ class _ChoseregisterState extends State<Choseregister> {
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const RegisterRiderPage(),
+                          ),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF65176C),
                         shape: RoundedRectangleBorder(
@@ -112,7 +129,14 @@ class _ChoseregisterState extends State<Choseregister> {
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const Loginpage(),
+                          ),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF65176C),
                         shape: RoundedRectangleBorder(
