@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'riderpage/register_rider.dart';
 
 class Fritspage extends StatefulWidget {
   const Fritspage({super.key});
@@ -15,12 +16,11 @@ class _FritspageState extends State<Fritspage> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        color: const Color(0xFF6B09A3), // พื้นหลังม่วง
+        color: const Color(0xFF6B09A3),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 150), // ⭐ ระยะห่างจากขอบบน
-            // โลโก้ชื่อแอป
+            const SizedBox(height: 150),
             Text(
               "DELIDASH",
               style: GoogleFonts.rubikGlitch(
@@ -31,15 +31,10 @@ class _FritspageState extends State<Fritspage> {
                 ),
               ),
             ),
-
-            const Spacer(), // ⭐ ดันกล่องลงไปล่าง
-            // กล่องสีขาวมีเงา
+            const Spacer(),
             Container(
               padding: const EdgeInsets.all(20),
-              margin: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 30,
-              ), // ⭐ เว้นจากขอบล่าง
+              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
               height: 400,
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -55,17 +50,16 @@ class _FritspageState extends State<Fritspage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // ไอคอนรถ
                   Image.asset(
                     'assets/image/logo.png',
-                    height: 200, // ⭐ ปรับความสูง
+                    height: 200,
                     fit: BoxFit.contain,
                   ),
                   const SizedBox(height: 30),
-
-                  // ปุ่มเข้าสู่ระบบ
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      // ปุ่มเข้าสู่ระบบ
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF65176C),
                       shape: RoundedRectangleBorder(
@@ -79,10 +73,16 @@ class _FritspageState extends State<Fritspage> {
                     ),
                   ),
                   const SizedBox(height: 15),
-
-                  // ปุ่มสมัครสมาชิก
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      // กดแล้วไปหน้า RegisterRiderPage
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const RegisterRiderPage(),
+                        ),
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF65176C),
                       shape: RoundedRectangleBorder(
