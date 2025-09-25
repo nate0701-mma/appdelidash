@@ -7,6 +7,7 @@ import 'package:delidash/page/registeruser.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:delidash/page/Fritspage.dart';
+import 'package:delidash/page/riderpage/register_rider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,7 +30,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const AddAddressPage(),
+      home: const RegisterRiderPage(),
     );
   }
 }

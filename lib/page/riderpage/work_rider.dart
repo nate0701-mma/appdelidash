@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'profile_rider.dart';
 
 class WorkRiderPage extends StatefulWidget {
@@ -46,7 +47,7 @@ class _WorkRiderPageState extends State<WorkRiderPage> {
         children: [_buildWorkPage(), const ProfileRiderPage()],
       ),
 
-      // ✅ BottomNavigationBar เหมือนแบบในรูป
+      // ✅ BottomNavigationBar
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onTap,
@@ -103,31 +104,64 @@ class _WorkRiderPageState extends State<WorkRiderPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ส่วนโปรไฟล์
             Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: Colors.grey[300],
-                    child: const Icon(Icons.person, color: Colors.white),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'ไรเดอร์: โคทาโร่ โคคุมิจิ',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                ],
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8,
+              ),
+              child: Container(
+                width: double.infinity,
+                height: 64,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: const Color.fromARGB(255, 215, 190, 245),
+                      child: const Icon(
+                        Icons.person,
+                        color: Color.fromARGB(255, 223, 222, 222),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'ไรเดอร์: โคทาโร่ โคกิมจิ',
+                        style: GoogleFonts.notoSansThai(
+                          textStyle: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
 
             // ส่วนหัวรายการ
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Text(
                 'สินค้าที่ต้องส่ง',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: GoogleFonts.notoSansThai(
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 12),
@@ -167,18 +201,26 @@ class _WorkRiderPageState extends State<WorkRiderPage> {
                               children: [
                                 Text(
                                   'Order ${order['order']}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
+                                  style: GoogleFonts.notoSansThai(
+                                    textStyle: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
                                   ),
                                 ),
                                 Text(
                                   order['product']!,
-                                  style: const TextStyle(fontSize: 14),
+                                  style: GoogleFonts.notoSansThai(
+                                    textStyle: const TextStyle(fontSize: 14),
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 Text(
                                   order['detail']!,
-                                  style: const TextStyle(fontSize: 12),
+                                  style: GoogleFonts.notoSansThai(
+                                    textStyle: const TextStyle(fontSize: 12),
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 const SizedBox(height: 8),
                                 ElevatedButton(
@@ -196,9 +238,14 @@ class _WorkRiderPageState extends State<WorkRiderPage> {
                                   onPressed: () {
                                     // logic รับงาน
                                   },
-                                  child: const Text(
+                                  child: Text(
                                     'รับงาน',
-                                    style: TextStyle(color: Colors.white),
+                                    style: GoogleFonts.notoSansThai(
+                                      textStyle: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ],

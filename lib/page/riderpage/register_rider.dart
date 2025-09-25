@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:delidash/page/riderpage/work_rider.dart';
-import 'package:delidash/page/riderpage/image_picker.dart'; // import หน้า image_picker
+import 'package:delidash/page/riderpage/image_picker.dart';
 
 class RegisterRiderPage extends StatefulWidget {
   const RegisterRiderPage({super.key});
@@ -17,121 +18,170 @@ class _RegisterRiderPageState extends State<RegisterRiderPage> {
       TextEditingController();
   final TextEditingController vehiclePlateController = TextEditingController();
 
+  bool _isVehicleUploaded = false; // ✅ เก็บสถานะอัปโหลดยานพาหนะ
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 108, 10, 150),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context); // กลับหน้าก่อนหน้า
-          },
-        ),
-      ),
+      backgroundColor: Colors.purple[800],
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              const SizedBox(height: 30),
-              CircleAvatar(
-                radius: 60,
-                backgroundColor: Colors.purple[300],
-                child: const Icon(
-                  Icons.cloud_upload,
-                  size: 50,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                "สมัครไรเดอร์",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 30),
-              _buildTextField("ชื่อ", "กรอกชื่อ", nameController),
-              _buildTextField(
-                "เบอร์โทร",
-                "กรอกเบอร์โทร",
-                phoneController,
-                keyboard: TextInputType.phone,
-              ),
-              _buildTextField(
-                "รหัสผ่าน",
-                "กรอกรหัสผ่าน",
-                passwordController,
-                obscure: true,
-              ),
-              _buildTextField(
-                "ยืนยันรหัสผ่าน",
-                "กรอกยืนยันรหัสผ่าน",
-                confirmPasswordController,
-                obscure: true,
-              ),
-              _buildTextField(
-                "ทะเบียนรถ",
-                "กรอกทะเบียนรถ",
-                vehiclePlateController,
-              ),
-              const SizedBox(height: 20),
-
-              // ปุ่มอัปโหลดรูปยานพาหนะ
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.purple[300],
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                // Upload Profile
+                GestureDetector(
+                  onTap: () {
+                    // TODO: ทำให้กดอัปโหลดรูปโปรไฟล์ได้เหมือน Registeruser
+                  },
+                  child: Container(
+                    width: 140,
+                    height: 140,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white24,
+                    ),
+                    child: const Icon(
+                      Icons.cloud_upload,
+                      size: 60,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-                onPressed: () {
-                  // ไปหน้า image_picker.dart
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const UploadVehiclePage(),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.cloud_upload),
-                label: const Text("อัปโหลดรูปยานพาหนะ"),
-              ),
-              const SizedBox(height: 15),
 
-              // ปุ่มสมัครไรเดอร์
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.purple[200],
-                  foregroundColor: const Color.fromARGB(255, 248, 247, 247),
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-                onPressed: () {
-                  // ไปหน้า WorkRiderPage และลบหน้าก่อนหน้าออก
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const WorkRiderPage(),
-                    ),
-                    (route) => false,
-                  );
-                },
-                child: const Text(
+                const SizedBox(height: 20),
+
+                Text(
                   "สมัครไรเดอร์",
-                  style: TextStyle(fontSize: 16),
+                  style: GoogleFonts.notoSansThai(
+                    textStyle: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-              ),
-            ],
+
+                const SizedBox(height: 30),
+
+                // ช่องกรอกข้อมูล
+                _buildTextField("ชื่อ", "กรอกชื่อ", nameController),
+                const SizedBox(height: 15),
+                _buildTextField(
+                  "เบอร์โทร",
+                  "กรอกเบอร์โทร",
+                  phoneController,
+                  keyboard: TextInputType.phone,
+                ),
+                const SizedBox(height: 15),
+                _buildTextField(
+                  "รหัสผ่าน",
+                  "กรอกรหัสผ่าน",
+                  passwordController,
+                  obscure: true,
+                ),
+                const SizedBox(height: 15),
+                _buildTextField(
+                  "ยืนยันรหัสผ่าน",
+                  "กรอกยืนยันรหัสผ่าน",
+                  confirmPasswordController,
+                  obscure: true,
+                ),
+                const SizedBox(height: 15),
+                _buildTextField(
+                  "ทะเบียนรถ",
+                  "กรอกทะเบียนรถ",
+                  vehiclePlateController,
+                ),
+
+                const SizedBox(height: 20),
+
+                // ปุ่มอัปโหลดรูปยานพาหนะ
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.purple[300],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                      ),
+                      onPressed: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const UploadVehiclePage(),
+                          ),
+                        );
+
+                        if (result == true) {
+                          setState(() {
+                            _isVehicleUploaded = true;
+                          });
+                        }
+                      },
+                      icon: Icon(
+                        _isVehicleUploaded
+                            ? Icons.check_circle
+                            : Icons.cloud_upload,
+                        color: Colors.white,
+                      ),
+                      label: Text(
+                        _isVehicleUploaded
+                            ? "อัปโหลดเรียบร้อย"
+                            : "อัปโหลดรูปยานพาหนะ",
+                        style: GoogleFonts.notoSansThai(
+                          textStyle: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 15),
+
+                // ปุ่มสมัครไรเดอร์
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.purple[400],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                      ),
+                      onPressed: () {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const WorkRiderPage(),
+                          ),
+                          (route) => false,
+                        );
+                      },
+                      child: Text(
+                        "สมัครไรเดอร์",
+                        style: GoogleFonts.notoSansThai(
+                          textStyle: const TextStyle(
+                            fontSize: 18,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -145,33 +195,28 @@ class _RegisterRiderPageState extends State<RegisterRiderPage> {
     bool obscure = false,
     TextInputType keyboard = TextInputType.text,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      alignment: Alignment.centerLeft,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 30),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+          Padding(
+            padding: const EdgeInsets.only(left: 15, bottom: 5),
+            child: Text(
+              label,
+              style: GoogleFonts.notoSansThai(
+                textStyle: const TextStyle(fontSize: 16, color: Colors.white),
+              ),
             ),
           ),
-          const SizedBox(height: 8),
           TextField(
             controller: controller,
             obscureText: obscure,
             keyboardType: keyboard,
             decoration: InputDecoration(
+              hintText: hint,
               filled: true,
               fillColor: Colors.white,
-              hintText: hint,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 15,
-              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(30),
                 borderSide: BorderSide.none,

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-//import 'work_rider.dart'; // import หน้า WorkRiderPage
+import 'package:google_fonts/google_fonts.dart';
 import 'package:delidash/page/Fritspage.dart';
 
 class ProfileRiderPage extends StatefulWidget {
@@ -16,9 +16,7 @@ class _ProfileRiderPageState extends State<ProfileRiderPage> {
       backgroundColor: const Color(0xFFE6E0F0),
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: const Color(0xFFD9CFF5),
-        title: const Text('Profile'),
-        centerTitle: true,
+        backgroundColor: const Color(0xFFE6E0F0),
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -37,7 +35,7 @@ class _ProfileRiderPageState extends State<ProfileRiderPage> {
                   children: [
                     CircleAvatar(
                       radius: 40,
-                      backgroundColor: Colors.grey[300],
+                      backgroundColor: const Color.fromARGB(255, 224, 190, 252),
                       child: ClipOval(
                         child: Image.asset(
                           'assets/user.png',
@@ -57,20 +55,36 @@ class _ProfileRiderPageState extends State<ProfileRiderPage> {
                     const SizedBox(width: 16),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
-                          'ชื่อ: โดคาโซ โดกิมจิ',
-                          style: TextStyle(fontSize: 16),
+                          'ชื่อ: โคทาโร่ โดกิมจิ',
+                          style: GoogleFonts.notoSansThai(
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
                           'เบอร์โทร: 0991234567',
-                          style: TextStyle(fontSize: 16),
+                          style: GoogleFonts.notoSansThai(
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.black,
+                            ),
+                          ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
                           'ทะเบียนรถ: กง1568',
-                          style: TextStyle(fontSize: 16),
+                          style: GoogleFonts.notoSansThai(
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.black,
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -101,50 +115,68 @@ class _ProfileRiderPageState extends State<ProfileRiderPage> {
               const SizedBox(height: 20),
 
               // ปุ่มแก้ไขโปรไฟล์
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // ใส่ฟังก์ชันแก้ไขโปรไฟล์
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFCE9FFF),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFCE9FFF),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: const Text(
-                    'แก้ไขโปรไฟล์',
-                    style: TextStyle(fontSize: 16),
+                    onPressed: () {
+                      // ใส่ฟังก์ชันแก้ไขโปรไฟล์
+                    },
+                    child: Text(
+                      'แก้ไขโปรไฟล์',
+                      style: GoogleFonts.notoSansThai(
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 16),
 
               // ปุ่มออกจากระบบ
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const Fritspage(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey[300],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
                       ),
-                      (route) => false,
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[300],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: const Text(
-                    'ออกจากระบบ',
-                    style: TextStyle(fontSize: 16, color: Colors.red),
+                    onPressed: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const Fritspage(),
+                        ),
+                        (route) => false,
+                      );
+                    },
+                    child: Text(
+                      'ออกจากระบบ',
+                      style: GoogleFonts.notoSansThai(
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
