@@ -16,55 +16,67 @@ class _LoginpageState extends State<Loginpage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  // ✅ ฟังก์ชัน login
-  // ✅ ฟังก์ชัน login
   void loginUser() async {
     try {
       var db = FirebaseFirestore.instance;
 
-      // 🔎 หา user ตาม email
-      final snapshot = await db
+      // 🔎 ตรวจสอบ collection users
+      final userSnapshot = await db
           .collection("users")
           .where("email", isEqualTo: emailController.text.trim())
           .limit(1)
           .get();
 
-      if (snapshot.docs.isEmpty) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text("ไม่พบผู้ใช้งาน ❌")));
-        return;
-      }
+      if (userSnapshot.docs.isNotEmpty) {
+        final doc = userSnapshot.docs.first;
+        final data = doc.data();
+        final userId = doc.id;
 
-      final doc = snapshot.docs.first; // ✅ ดึง document
-      final userData = doc.data();
-      final userId = doc.id; // ✅ เก็บ id ไว้ส่งไปหน้า Homepage
-
-      // ✅ ตรวจสอบรหัสผ่าน
-      if (userData["password"] == passwordController.text.trim()) {
-        Navigator.popUntil(context, (route) => route.isFirst);
-
-        // 👉 ถ้ามี address ให้ไป Homepage
-        if (userData["address"] != null &&
-            userData["address"].toString().isNotEmpty) {
+        if (data["password"] == passwordController.text.trim()) {
+          Navigator.popUntil(context, (route) => route.isFirst);
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (context) => Homepage(userId: userId), // ✅ ส่ง userId
-            ),
+            MaterialPageRoute(builder: (context) => Homepage(userId: userId)),
           );
+          return;
         } else {
-          // 👉 ถ้าไม่มี address ไปหน้า WorkRider
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text("รหัสผ่านไม่ถูกต้อง ❌")));
+          return;
+        }
+      }
+
+      // 🔎 ตรวจสอบ collection riders
+      final riderSnapshot = await db
+          .collection("riders")
+          .where("email", isEqualTo: emailController.text.trim())
+          .limit(1)
+          .get();
+
+      if (riderSnapshot.docs.isNotEmpty) {
+        final doc = riderSnapshot.docs.first;
+        final data = doc.data();
+
+        if (data["password"] == passwordController.text.trim()) {
+          Navigator.popUntil(context, (route) => route.isFirst);
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const WorkRiderPage()),
           );
+          return;
+        } else {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text("รหัสผ่านไม่ถูกต้อง ❌")));
+          return;
         }
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text("รหัสผ่านไม่ถูกต้อง ❌")));
       }
+
+      // ❌ ไม่พบผู้ใช้งาน
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("ไม่พบผู้ใช้งาน ❌")));
     } catch (e) {
       ScaffoldMessenger.of(
         context,
@@ -82,25 +94,17 @@ class _LoginpageState extends State<Loginpage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Logo
-                Column(
-                  children: [
-                    Image.asset('assets/image/logo.png', height: 140),
-                    Text(
-                      'DELIDASH',
-                      style: GoogleFonts.rubikGlitch(
-                        textStyle: const TextStyle(
-                          fontSize: 28,
-                          color: Color(0xFF65176C),
-                        ),
-                      ),
+                Image.asset('assets/image/logo.png', height: 140),
+                Text(
+                  'DELIDASH',
+                  style: GoogleFonts.rubikGlitch(
+                    textStyle: const TextStyle(
+                      fontSize: 28,
+                      color: Color(0xFF65176C),
                     ),
-                  ],
+                  ),
                 ),
-
                 const SizedBox(height: 10),
-
-                // Title
                 Text(
                   'เข้าสู่ระบบ',
                   style: GoogleFonts.notoSansThai(
@@ -110,34 +114,25 @@ class _LoginpageState extends State<Loginpage> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 25),
-
-                // Email TextField
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 30),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 15),
-                        child: Text(
-                          'อีเมล',
-                          style: GoogleFonts.notoSansThai(
-                            textStyle: const TextStyle(
-                              fontSize: 16,
-                              color: Color(0xFF65176C),
-                            ),
-                          ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'อีเมล',
+                        style: GoogleFonts.notoSansThai(
+                          fontSize: 16,
+                          color: Color(0xFF65176C),
                         ),
                       ),
                       TextField(
                         controller: emailController,
                         decoration: InputDecoration(
                           labelText: "ป้อนอีเมล",
-                          labelStyle: const TextStyle(
-                            color: Color.fromARGB(255, 173, 173, 173),
-                          ),
+                          labelStyle: const TextStyle(color: Color(0xFFADADAD)),
                           filled: true,
                           fillColor: const Color(0xFFCAC4D0),
                           border: OutlineInputBorder(
@@ -146,28 +141,12 @@ class _LoginpageState extends State<Loginpage> {
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 4),
-
-                // Password TextField
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 15),
-                        child: Text(
-                          'รหัสผ่าน',
-                          style: GoogleFonts.notoSansThai(
-                            textStyle: const TextStyle(
-                              fontSize: 16,
-                              color: Color(0xFF65176C),
-                            ),
-                          ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'รหัสผ่าน',
+                        style: GoogleFonts.notoSansThai(
+                          fontSize: 16,
+                          color: Color(0xFF65176C),
                         ),
                       ),
                       TextField(
@@ -175,9 +154,7 @@ class _LoginpageState extends State<Loginpage> {
                         obscureText: true,
                         decoration: InputDecoration(
                           labelText: "ป้อนรหัสผ่าน",
-                          labelStyle: const TextStyle(
-                            color: Color.fromARGB(255, 173, 173, 173),
-                          ),
+                          labelStyle: const TextStyle(color: Color(0xFFADADAD)),
                           filled: true,
                           fillColor: const Color(0xFFCAC4D0),
                           border: OutlineInputBorder(
@@ -189,10 +166,7 @@ class _LoginpageState extends State<Loginpage> {
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 40),
-
-                // Login Button
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 30),
                   child: SizedBox(
@@ -205,22 +179,18 @@ class _LoginpageState extends State<Loginpage> {
                           borderRadius: BorderRadius.circular(30),
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 15),
-                        elevation: 3,
                       ),
                       child: Text(
                         "เข้าสู่ระบบ",
                         style: GoogleFonts.notoSansThai(
-                          textStyle: const TextStyle(
-                            fontSize: 18,
-                            color: Colors.white,
-                          ),
+                          fontSize: 18,
+                          color: Colors.white,
                         ),
                       ),
                     ),
                   ),
                 ),
-
-                // Register Button
+                const SizedBox(height: 10),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 30),
                   child: SizedBox(
@@ -240,15 +210,12 @@ class _LoginpageState extends State<Loginpage> {
                           borderRadius: BorderRadius.circular(30),
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 15),
-                        elevation: 3,
                       ),
                       child: Text(
                         "สมัครสมาชิก",
                         style: GoogleFonts.notoSansThai(
-                          textStyle: const TextStyle(
-                            fontSize: 18,
-                            color: Colors.white,
-                          ),
+                          fontSize: 18,
+                          color: Colors.white,
                         ),
                       ),
                     ),

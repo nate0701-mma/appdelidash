@@ -1,4 +1,4 @@
-import 'package:delidash/page/LoginPage.dart';
+import 'package:delidash/page/loginpage.dart';
 import 'package:delidash/page/registeruser.dart';
 import 'package:delidash/page/riderpage/register_rider.dart';
 import 'package:flutter/material.dart';
