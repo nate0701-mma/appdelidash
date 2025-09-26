@@ -288,11 +288,11 @@ class _RegisterRiderPageState extends State<RegisterRiderPage> {
         final fileName = "profile_${DateTime.now().millisecondsSinceEpoch}.jpg";
 
         await SupabaseConfig.client.storage
-            .from("user_profiles")
+            .from("rider_profiles")
             .uploadBinary(fileName, bytes);
 
         profileImageUrl = SupabaseConfig.client.storage
-            .from("user_profiles")
+            .from("rider_profiles")
             .getPublicUrl(fileName);
       }
 
