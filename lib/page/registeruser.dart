@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:delidash/page/choseregister.dart';
 import 'package:delidash/supabase_config.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -387,6 +388,30 @@ class _RegisteruserState extends State<Registeruser> {
                           ),
                         ),
                       ),
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+
+                  ElevatedButton(
+                    onPressed: () {
+                      // กดแล้วไปหน้า RegisterRiderPage
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const Choseregister(),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF65176C),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      minimumSize: const Size(double.infinity, 50),
+                    ),
+                    child: const Text(
+                      "สมัครสมาชิก",
+                      style: TextStyle(fontSize: 24, color: Colors.white),
                     ),
                   ),
                 ],
