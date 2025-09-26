@@ -137,19 +137,6 @@ class _RegisterRiderPageState extends State<RegisterRiderPage> {
             .getPublicUrl(fileName);
       }
 
-      if (_profileImage != null) {
-        final bytes = await _profileImage!.readAsBytes();
-        final fileName = "profile_${DateTime.now().millisecondsSinceEpoch}.jpg";
-
-        await SupabaseConfig.client.storage
-            .from("rider_vehicles")
-            .uploadBinary(fileName, bytes);
-
-        profileImageUrl = SupabaseConfig.client.storage
-            .from("rider_vehicles")
-            .getPublicUrl(fileName);
-      }
-
       // เก็บข้อมูล Rider ลง Firestore
       final data = {
         "name": nameController.text.trim(),
