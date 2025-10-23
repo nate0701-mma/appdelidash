@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../page/addressInsert.dart'; // ✅ import หน้าเลือกที่อยู่
 
 class AddOrderPage extends StatefulWidget {
   const AddOrderPage({Key? key}) : super(key: key);
@@ -23,7 +24,7 @@ class _AddOrderPageState extends State<AddOrderPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.pop(context); // กลับหน้าก่อนหน้า
           },
         ),
       ),
@@ -31,25 +32,45 @@ class _AddOrderPageState extends State<AddOrderPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // กล่องเลือกสินค้า
+            // ✅ ปุ่มเลือกที่อยู่รับสินค้า
             Container(
               height: 120,
-              color: const Color.fromARGB(255, 232, 225, 233),
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 232, 225, 233),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Center(
                 child: TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.purple[400],
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
                   onPressed: () {
-                    // TODO: เพิ่มฟังก์ชันเลือกสินค้า
+                    // ✅ ไปหน้า InsertAddressPage
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const InsertAddressPage(),
+                      ),
+                    );
                   },
                   child: const Text(
-                    'เลือกที่รับสินค้า',
-                    style: TextStyle(color: Colors.white),
+                    'เลือกที่อยู่รับสินค้า',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ),
               ),
             ),
             const SizedBox(height: 16),
 
-            // เบอร์ผู้รับ
+            // ช่องค้นหาผู้รับ
             Row(
               children: [
                 Expanded(
@@ -69,7 +90,7 @@ class _AddOrderPageState extends State<AddOrderPage> {
                 ),
                 IconButton(
                   onPressed: () {
-                    // TODO: ค้นหาผู้รับ
+                    // TODO: ฟังก์ชันค้นหาผู้รับ
                   },
                   icon: const Icon(Icons.search, color: Colors.white),
                 ),
@@ -134,7 +155,7 @@ class _AddOrderPageState extends State<AddOrderPage> {
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.purple[300],
-                hintText: 'รายละเอียด',
+                hintText: 'รายละเอียดสินค้า',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide.none,
