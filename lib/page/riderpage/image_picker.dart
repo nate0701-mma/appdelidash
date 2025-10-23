@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:delidash/supabase_config.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UploadVehiclePage extends StatefulWidget {
   const UploadVehiclePage({Key? key}) : super(key: key);
@@ -11,60 +12,75 @@ class UploadVehiclePage extends StatefulWidget {
 }
 
 class _UploadVehiclePageState extends State<UploadVehiclePage> {
-  File? _image;
+  File? _vehicleImage;
+  final ImagePicker _picker = ImagePicker();
   bool _isUploading = false;
 
+  // เลือกรูปจาก gallery
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(
+    final XFile? pickedFile = await _picker.pickImage(
       source: ImageSource.gallery,
       imageQuality: 80,
     );
     if (pickedFile != null) {
       setState(() {
-        _image = File(pickedFile.path);
+        _vehicleImage = File(pickedFile.path);
       });
     }
   }
 
-  Future<void> _uploadToSupabase() async {
-    if (_image == null) return;
+  void _removeImage() {
+    setState(() => _vehicleImage = null);
+  }
 
-    setState(() {
-      _isUploading = true;
-    });
+  Future<void> _uploadVehicle() async {
+    if (_vehicleImage == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("กรุณาเลือกรูปยานพาหนะ")));
+      return;
+    }
+
+    setState(() => _isUploading = true);
 
     try {
-      final bytes = await _image!.readAsBytes();
       final fileName = "vehicle_${DateTime.now().millisecondsSinceEpoch}.jpg";
 
-      // อัปโหลดไป Supabase bucket "rider_vehicles"
+      // ✅ ใช้ uploadBinary แบบเดียวกับ RegisterRiderPage
+      final bytes = await _vehicleImage!.readAsBytes();
+
       await SupabaseConfig.client.storage
           .from("rider_vehicles")
           .uploadBinary(fileName, bytes);
 
       // ดึง public URL
-      final publicUrl = SupabaseConfig.client.storage
+      final vehicleImageUrl = SupabaseConfig.client.storage
           .from("rider_vehicles")
           .getPublicUrl(fileName);
 
-      // ส่งกลับ URL
-      Navigator.pop(context, publicUrl);
-    } catch (e) {
+      // เก็บ URL ใน Firestore
+      final data = {
+        "vehicleImage": vehicleImageUrl,
+        "createdAt": DateTime.now(),
+      };
+      await FirebaseFirestore.instance.collection("rider_vehicles").add(data);
+
       setState(() {
         _isUploading = false;
+        _vehicleImage = null;
       });
+
+      // ส่ง URL กลับไป RegisterRiderPage
+      Navigator.pop(context, vehicleImageUrl);
+
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("เกิดข้อผิดพลาดในการอัปโหลด: $e")));
-    }
-  }
-
-  void _finish() {
-    if (_image != null) {
-      _uploadToSupabase();
-    } else {
-      Navigator.pop(context, null); // ส่ง null ถ้ายังไม่เลือกไฟล์
+      ).showSnackBar(const SnackBar(content: Text("อัปโหลดเรียบร้อยแล้ว")));
+    } catch (e) {
+      setState(() => _isUploading = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("เกิดข้อผิดพลาด: $e")));
     }
   }
 
@@ -77,7 +93,7 @@ class _UploadVehiclePageState extends State<UploadVehiclePage> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: _finish,
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: Center(
@@ -105,10 +121,38 @@ class _UploadVehiclePageState extends State<UploadVehiclePage> {
                     ),
                   ],
                 ),
-                child: _image != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.file(_image!, fit: BoxFit.cover),
+                child: _vehicleImage != null
+                    ? Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.file(
+                              _vehicleImage!,
+                              width: 200,
+                              height: 200,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Positioned(
+                            top: 5,
+                            right: 5,
+                            child: GestureDetector(
+                              onTap: _removeImage,
+                              child: Container(
+                                decoration: const BoxDecoration(
+                                  color: Colors.black54,
+                                  shape: BoxShape.circle,
+                                ),
+                                padding: const EdgeInsets.all(4),
+                                child: const Icon(
+                                  Icons.close,
+                                  size: 20,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       )
                     : const Icon(
                         Icons.cloud_upload,
@@ -119,7 +163,7 @@ class _UploadVehiclePageState extends State<UploadVehiclePage> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _isUploading ? null : _finish,
+              onPressed: _isUploading ? null : _uploadVehicle,
               style: ElevatedButton.styleFrom(
                 backgroundColor: _isUploading
                     ? Colors.grey
@@ -135,7 +179,7 @@ class _UploadVehiclePageState extends State<UploadVehiclePage> {
               child: _isUploading
                   ? const CircularProgressIndicator(color: Colors.white)
                   : const Text(
-                      'เสร็จสิ้น',
+                      'อัปโหลด',
                       style: TextStyle(color: Colors.black, fontSize: 16),
                     ),
             ),

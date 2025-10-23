@@ -1,10 +1,10 @@
 import 'dart:io';
+import 'package:delidash/page/riderpage/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:delidash/supabase_config.dart';
 import 'package:delidash/page/loginpage.dart';
-import 'package:delidash/page/riderpage/image_picker.dart';
 import 'package:image_picker/image_picker.dart';
 
 class RegisterRiderPage extends StatefulWidget {
@@ -15,8 +15,8 @@ class RegisterRiderPage extends StatefulWidget {
 }
 
 class _RegisterRiderPageState extends State<RegisterRiderPage> {
-  File? _vehicleImage;
   File? _profileImage;
+  String? _vehicleImageUrl;
   bool _isVehicleUploaded = false;
 
   final ImagePicker _picker = ImagePicker();
@@ -42,21 +42,138 @@ class _RegisterRiderPageState extends State<RegisterRiderPage> {
     }
   }
 
-  // ไปหน้า UploadVehiclePage
+  // ไปหน้า UploadVehiclePage เพื่อเลือกรูปยานพาหนะ
   Future<void> _pickVehicleImage() async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const UploadVehiclePage()),
     );
 
-    if (result != null && result is File) {
+    if (result != null && result is String) {
       setState(() {
-        _vehicleImage = result;
+        _vehicleImageUrl = result;
         _isVehicleUploaded = true;
       });
-      print("เลือกไฟล์เรียบร้อย: $_vehicleImage");
-    } else {
-      print("ยังไม่ได้เลือกไฟล์");
+    }
+  }
+
+  Widget _buildTextField(
+    String label,
+    String hint,
+    TextEditingController controller, {
+    bool obscure = false,
+    TextInputType keyboard = TextInputType.text,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 30),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 15, bottom: 5),
+            child: Text(
+              label,
+              style: GoogleFonts.notoSansThai(
+                textStyle: const TextStyle(fontSize: 16, color: Colors.white),
+              ),
+            ),
+          ),
+          TextField(
+            controller: controller,
+            obscureText: obscure,
+            keyboardType: keyboard,
+            decoration: InputDecoration(
+              hintText: hint,
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _registerRider() async {
+    if (nameController.text.isEmpty ||
+        phoneController.text.isEmpty ||
+        emailController.text.isEmpty ||
+        passwordController.text.isEmpty ||
+        confirmPasswordController.text.isEmpty ||
+        vehiclePlateController.text.isEmpty ||
+        !_isVehicleUploaded) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("กรุณากรอกข้อมูลให้ครบทุกช่องและอัปโหลดรูปยานพาหนะ"),
+        ),
+      );
+      return;
+    }
+
+    if (passwordController.text != confirmPasswordController.text) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("รหัสผ่านไม่ตรงกัน")));
+      return;
+    }
+
+    try {
+      String? profileImageUrl;
+
+      // Upload รูปโปรไฟล์ไป Supabase
+      if (_profileImage != null) {
+        final bytes = await _profileImage!.readAsBytes();
+        final fileName = "profile_${DateTime.now().millisecondsSinceEpoch}.jpg";
+
+        await SupabaseConfig.client.storage
+            .from("rider_profiles")
+            .uploadBinary(fileName, bytes);
+
+        profileImageUrl = SupabaseConfig.client.storage
+            .from("rider_profiles")
+            .getPublicUrl(fileName);
+      }
+
+      // เก็บข้อมูล Rider ลง Firestore
+      final data = {
+        "name": nameController.text.trim(),
+        "phone": phoneController.text.trim(),
+        "email": emailController.text.trim(),
+        "password": passwordController.text.trim(),
+        "vehiclePlate": vehiclePlateController.text.trim(),
+        "profileImage": profileImageUrl,
+        "vehicleImage": _vehicleImageUrl,
+        "createdAt": DateTime.now(),
+      };
+
+      await FirebaseFirestore.instance.collection("riders").add(data);
+
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("สำเร็จ"),
+          content: const Text("สมัครไรเดอร์สำเร็จ!"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const Loginpage()),
+                );
+              },
+              child: const Text("ตกลง"),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("เกิดข้อผิดพลาด: $e")));
     }
   }
 
@@ -170,17 +287,11 @@ class _RegisterRiderPageState extends State<RegisterRiderPage> {
                       _isVehicleUploaded
                           ? "อัปโหลดเรียบร้อย"
                           : "อัปโหลดรูปยานพาหนะ",
-                      style: GoogleFonts.notoSansThai(
-                        textStyle: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
-                        ),
-                      ),
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                 ),
               ),
-
               const SizedBox(height: 20),
 
               // ---------------- ปุ่มสมัคร ----------------
@@ -209,143 +320,11 @@ class _RegisterRiderPageState extends State<RegisterRiderPage> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 30),
             ],
           ),
         ),
       ),
     );
-  }
-
-  Widget _buildTextField(
-    String label,
-    String hint,
-    TextEditingController controller, {
-    bool obscure = false,
-    TextInputType keyboard = TextInputType.text,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 30),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 15, bottom: 5),
-            child: Text(
-              label,
-              style: GoogleFonts.notoSansThai(
-                textStyle: const TextStyle(fontSize: 16, color: Colors.white),
-              ),
-            ),
-          ),
-          TextField(
-            controller: controller,
-            obscureText: obscure,
-            keyboardType: keyboard,
-            decoration: InputDecoration(
-              hintText: hint,
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-                borderSide: BorderSide.none,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _registerRider() async {
-    if (nameController.text.isEmpty ||
-        phoneController.text.isEmpty ||
-        emailController.text.isEmpty ||
-        passwordController.text.isEmpty ||
-        confirmPasswordController.text.isEmpty ||
-        vehiclePlateController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("กรุณากรอกข้อมูลให้ครบทุกช่อง")),
-      );
-      return;
-    }
-
-    if (passwordController.text != confirmPasswordController.text) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("รหัสผ่านไม่ตรงกัน")));
-      return;
-    }
-
-    try {
-      String? profileImageUrl;
-      String? vehicleImageUrl;
-
-      // Upload รูปโปรไฟล์
-      if (_profileImage != null) {
-        final bytes = await _profileImage!.readAsBytes();
-        final fileName = "profile_${DateTime.now().millisecondsSinceEpoch}.jpg";
-
-        await SupabaseConfig.client.storage
-            .from("rider_profiles")
-            .uploadBinary(fileName, bytes);
-
-        profileImageUrl = SupabaseConfig.client.storage
-            .from("rider_profiles")
-            .getPublicUrl(fileName);
-      }
-
-      // Upload รูปยานพาหนะ
-      if (_vehicleImage != null) {
-        final bytes = await _vehicleImage!.readAsBytes();
-        final fileName = "vehicle_${DateTime.now().millisecondsSinceEpoch}.jpg";
-
-        await SupabaseConfig.client.storage
-            .from("rider_vehicles")
-            .uploadBinary(fileName, bytes);
-
-        vehicleImageUrl = SupabaseConfig.client.storage
-            .from("rider_vehicles")
-            .getPublicUrl(fileName);
-      }
-
-      final data = {
-        "name": nameController.text.trim(),
-        "phone": phoneController.text.trim(),
-        "email": emailController.text.trim(),
-        "password": passwordController.text.trim(),
-        "vehiclePlate": vehiclePlateController.text.trim(),
-        "profileImage": profileImageUrl,
-        "vehicleImage": vehicleImageUrl,
-        "createdAt": DateTime.now(),
-      };
-
-      await FirebaseFirestore.instance.collection("riders").add(data);
-
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text("สำเร็จ"),
-          content: const Text("สมัครไรเดอร์สำเร็จ!"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const Loginpage()),
-                );
-              },
-              child: const Text("ตกลง"),
-            ),
-          ],
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("เกิดข้อผิดพลาด: $e")));
-    }
   }
 }
