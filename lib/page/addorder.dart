@@ -58,7 +58,7 @@ class _AddOrderPageState extends State<AddOrderPage> {
                     keyboardType: TextInputType.phone,
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: Colors.purple[300],
+                      fillColor: const Color.fromARGB(255, 245, 219, 250),
                       hintText: 'ค้นหาผู้รับ',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),

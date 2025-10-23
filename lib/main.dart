@@ -11,6 +11,9 @@ import 'package:delidash/page/riderpage/register_rider.dart';
 import 'package:delidash/page/riderpage/deliverystatuspage.dart';
 import 'package:delidash/page/showwaitrider.dart';
 import 'package:delidash/page/addorder.dart';
+import 'package:delidash/page/profileuser.dart';
+import 'package:delidash/page/address.dart';
+import 'package:delidash/page/addressInsert.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,7 +37,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
 
-      home: const AddOrderPage(),
+      home: const InsertAddressPage(),
     );
   }
 }
