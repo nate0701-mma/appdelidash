@@ -8,6 +8,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:delidash/page/Fritspage.dart';
 import 'package:delidash/page/riderpage/register_rider.dart';
+import 'package:delidash/page/riderpage/deliverystatuspage.dart';
+import 'package:delidash/page/showwaitrider.dart';
+import 'package:delidash/page/addorder.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +34,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
 
-      home: const Fritspage(),
+      home: const AddOrderPage(),
     );
   }
 }
