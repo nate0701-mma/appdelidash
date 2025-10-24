@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../page/address.dart'; // ✅ import หน้า AddressPage ของคุณ
+import '../page/address.dart';
+import '../page/edit_profile.dart'; // ✅ import หน้าสำหรับแก้ไขโปรไฟล์
 
 class ProfileUserPage extends StatelessWidget {
   const ProfileUserPage({super.key});
@@ -10,7 +11,7 @@ class ProfileUserPage extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.purple,
-        title: const Text('profile'),
+        title: const Text('โปรไฟล์ผู้ใช้'),
         centerTitle: true,
       ),
       body: Padding(
@@ -58,6 +59,36 @@ class ProfileUserPage extends StatelessWidget {
 
             const SizedBox(height: 24),
 
+            // 🔹 ปุ่ม "แก้ไขโปรไฟล์"
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.purple[300],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.edit, color: Colors.white),
+                label: const Text(
+                  'แก้ไขโปรไฟล์',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
+                onPressed: () {
+                  // ✅ ไปหน้า EditProfilePage
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EditProfilePage(),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
             // 🔹 ปุ่ม "ที่อยู่"
             SizedBox(
               width: double.infinity,
@@ -96,7 +127,7 @@ class ProfileUserPage extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
-                  // เพิ่ม action ออกจากระบบภายหลัง
+                  // TODO: เพิ่ม action ออกจากระบบภายหลัง
                 },
                 child: const Text(
                   'ออกจากระบบ',
