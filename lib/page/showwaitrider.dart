@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class ShowwaitriderPage extends StatelessWidget {
-  const ShowwaitriderPage({super.key});
+  final Map<String, dynamic> order; // ✅ รับข้อมูล order
+
+  const ShowwaitriderPage({super.key, required this.order});
 
   @override
   Widget build(BuildContext context) {
@@ -12,16 +14,19 @@ class ShowwaitriderPage extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {},
+          onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('', style: TextStyle(color: Colors.black)),
+        title: const Text(
+          'รายละเอียดการจัดส่ง',
+          style: TextStyle(color: Colors.black),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // แถบสถานะ
+            // ✅ แถบสถานะ
             Container(
               padding: const EdgeInsets.symmetric(vertical: 8),
               decoration: BoxDecoration(
@@ -41,7 +46,43 @@ class ShowwaitriderPage extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // โปรไฟล์ไรเดอร์
+            // ✅ แสดงข้อมูลสินค้า
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "📦 สินค้า: ${order['productName'] ?? '-'}",
+                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                  Text(
+                    "รายละเอียด: ${order['productDetail'] ?? '-'}",
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  Text(
+                    "ผู้รับ: ${order['receiverName'] ?? '-'}",
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  Text(
+                    "ที่อยู่ผู้รับ: ${order['receiverAddress'] ?? '-'}",
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  Text(
+                    "สถานะ: ${order['status'] ?? '-'}",
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // ✅ โปรไฟล์ไรเดอร์ (ตอนนี้ mock ไว้ก่อน)
             Row(
               children: [
                 const CircleAvatar(
@@ -70,17 +111,7 @@ class ShowwaitriderPage extends StatelessWidget {
               ],
             ),
 
-            const SizedBox(height: 20),
-
-            // ข้อความสถานะ
-            const Text(
-              'รอไรเดอร์เข้ารับงาน',
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-
-            const SizedBox(height: 12),
-
-            // กล่องแผนที่ (จำลอง)
+            const SizedBox(height: 30),
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: Image.asset(
@@ -92,8 +123,6 @@ class ShowwaitriderPage extends StatelessWidget {
             ),
 
             const SizedBox(height: 30),
-
-            // ช่อง “ไรเดอร์รับของแล้ว” และ “ส่งเสร็จสิ้น”
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [

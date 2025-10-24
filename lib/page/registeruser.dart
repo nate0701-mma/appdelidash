@@ -1,13 +1,13 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:delidash/page/AddAddessPage.dart';
 import 'package:delidash/page/choseregister.dart';
 import 'package:delidash/supabase_config.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:delidash/page/AddAddessPage.dart';
+
 import 'package:delidash/page/LoginPage.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 
 class Registeruser extends StatefulWidget {
   const Registeruser({super.key});
@@ -29,12 +29,14 @@ class _RegisteruserState extends State<Registeruser> {
       TextEditingController();
   final TextEditingController addressController = TextEditingController();
 
+  // ✅ ตัวแปรเก็บพิกัดที่เลือกจากหน้า AddAddressPage
+  double? selectedLat;
+  double? selectedLng;
+
   Future<void> _pickImage() async {
     final XFile? picked = await _picker.pickImage(source: ImageSource.gallery);
     if (picked != null) {
-      setState(() {
-        _profileImage = File(picked.path);
-      });
+      setState(() => _profileImage = File(picked.path));
     }
   }
 
@@ -43,418 +45,224 @@ class _RegisteruserState extends State<Registeruser> {
     return Scaffold(
       backgroundColor: Colors.purple[800],
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(2, 15, 2, 15),
-              child: Column(
-                children: [
-                  // Upload Profile
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: Container(
-                      width: 140,
-                      height: 140,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white24,
-                      ),
-                      child: _profileImage == null
-                          ? const Icon(
-                              Icons.upload,
-                              size: 60,
-                              color: Colors.white,
-                            )
-                          : ClipOval(
-                              child: Image.file(
-                                _profileImage!,
-                                width: 140,
-                                height: 140,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                    ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            children: [
+              // Upload Profile
+              GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  width: 140,
+                  height: 140,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white24,
                   ),
+                  child: _profileImage == null
+                      ? const Icon(Icons.upload, size: 60, color: Colors.white)
+                      : ClipOval(
+                          child: Image.file(
+                            _profileImage!,
+                            width: 140,
+                            height: 140,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                "สมัครสมาชิก",
+                style: GoogleFonts.notoSansThai(
+                  textStyle: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 15),
 
-                  const SizedBox(height: 20),
+              // ======= ชื่อ =======
+              _buildInput("ชื่อ", "ป้อนชื่อ", nameController),
+              _buildInput("เบอร์โทร", "ป้อนเบอร์โทร", phoneController),
+              _buildInput("อีเมล", "ป้อนอีเมล", emailController),
+              _buildInput(
+                "รหัสผ่าน",
+                "ป้อนรหัสผ่าน",
+                passwordController,
+                obscure: true,
+              ),
+              _buildInput(
+                "ยืนยันรหัสผ่าน",
+                "ป้อนรหัสผ่านอีกครั้ง",
+                confirmPasswordController,
+                obscure: true,
+              ),
 
-                  Text(
-                    "สมัครสมาชิก",
-                    style: GoogleFonts.notoSansThai(
-                      textStyle: const TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
+              const SizedBox(height: 15),
+
+              // ======= ที่อยู่ =======
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'ที่อยู่',
+                      style: GoogleFonts.notoSansThai(
                         color: Colors.white,
+                        fontSize: 16,
                       ),
                     ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  // ================== ชื่อ ==================
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Row(
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 15),
-                          child: Text(
-                            'ชื่อ',
-                            style: GoogleFonts.notoSansThai(
-                              textStyle: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
+                        Expanded(
+                          child: TextField(
+                            controller: addressController,
+                            readOnly: true,
+                            decoration: InputDecoration(
+                              hintText: "ระบุที่อยู่",
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide.none,
                               ),
                             ),
                           ),
                         ),
-                        TextField(
-                          controller: nameController,
-                          decoration: InputDecoration(
-                            hintText: "ป้อนชื่อ",
-                            filled: true,
-                            fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 10,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(30),
-                              borderSide: BorderSide.none,
-                            ),
+                        const SizedBox(width: 10),
+                        ElevatedButton(
+                          onPressed: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const AddAddressPage(),
+                              ),
+                            );
+                            if (result != null) {
+                              setState(() {
+                                selectedLat = result['lat'];
+                                selectedLng = result['lng'];
+                                addressController.text =
+                                    "${result['placeName']} (Lat: ${selectedLat}, Lng: ${selectedLng})";
+                              });
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.purple[300],
+                            shape: const CircleBorder(),
+                            padding: const EdgeInsets.all(18),
                           ),
+                          child: const Text("เพิ่ม"),
                         ),
                       ],
                     ),
-                  ),
+                  ],
+                ),
+              ),
 
-                  const SizedBox(height: 15),
+              const SizedBox(height: 25),
 
-                  // ================== เบอร์โทร ==================
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 15),
-                          child: Text(
-                            'เบอร์โทร',
-                            style: GoogleFonts.notoSansThai(
-                              textStyle: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                        TextField(
-                          controller: phoneController,
-                          decoration: InputDecoration(
-                            hintText: "ป้อนเบอร์โทร",
-                            filled: true,
-                            fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 10,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(30),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 15),
-
-                  // ================== อีเมล ==================
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 15),
-                          child: Text(
-                            'อีเมล',
-                            style: GoogleFonts.notoSansThai(
-                              textStyle: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                        TextField(
-                          controller: emailController,
-                          decoration: InputDecoration(
-                            hintText: "ป้อนอีเมล",
-                            filled: true,
-                            fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 10,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(30),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 15),
-
-                  // ================== รหัสผ่าน ==================
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 15),
-                          child: Text(
-                            'รหัสผ่าน',
-                            style: GoogleFonts.notoSansThai(
-                              textStyle: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                        TextField(
-                          controller: passwordController,
-                          obscureText: true,
-                          decoration: InputDecoration(
-                            hintText: "ป้อนรหัสผ่าน",
-                            filled: true,
-                            fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 10,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(30),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 15),
-
-                  // ================== ยืนยันรหัสผ่าน ==================
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 15),
-                          child: Text(
-                            'ยืนยันรหัสผ่าน',
-                            style: GoogleFonts.notoSansThai(
-                              textStyle: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                        TextField(
-                          controller: confirmPasswordController,
-                          obscureText: true,
-                          decoration: InputDecoration(
-                            hintText: "ป้อนรหัสผ่านอีกครั้ง",
-                            filled: true,
-                            fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 10,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(30),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 15),
-
-                  // ================== ที่อยู่ + ปุ่มเพิ่ม ==================
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 15),
-                          child: Text(
-                            'ที่อยู่',
-                            style: GoogleFonts.notoSansThai(
-                              textStyle: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: addressController,
-                                readOnly: true,
-                                decoration: InputDecoration(
-                                  hintText: "ระบุที่อยู่",
-                                  filled: true,
-                                  fillColor: Colors.white,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                    vertical: 10,
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            ElevatedButton(
-                              onPressed: () async {
-                                final result = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const AddAddressPage(),
-                                  ),
-                                );
-                                if (result != null) {
-                                  setState(() {
-                                    addressController.text =
-                                        "${result['placeName']} (Lat: ${result['lat']}, Lng: ${result['lng']})";
-                                  });
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.purple[300],
-                                shape: const CircleBorder(),
-                                padding: const EdgeInsets.all(18),
-                              ),
-                              child: const Text("เพิ่ม"),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 25),
-
-                  // ================== ปุ่มสมัครสมาชิก ==================
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: registeruser,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.purple[400],
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 15),
-                        ),
-                        child: Text(
-                          "สมัครสมาชิก",
-                          style: GoogleFonts.notoSansThai(
-                            textStyle: const TextStyle(
-                              fontSize: 18,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-
-                  ElevatedButton(
-                    onPressed: () {
-                      // กดแล้วไปหน้า RegisterRiderPage
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const Choseregister(),
-                        ),
-                      );
-                    },
+              // ======= ปุ่มสมัครสมาชิก =======
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: registeruser,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF65176C),
+                      backgroundColor: Colors.purple[400],
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(30),
                       ),
-                      minimumSize: const Size(double.infinity, 50),
+                      padding: const EdgeInsets.symmetric(vertical: 15),
                     ),
                     child: const Text(
                       "สมัครสมาชิก",
-                      style: TextStyle(fontSize: 24, color: Colors.white),
+                      style: TextStyle(fontSize: 18, color: Colors.white),
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
+              const SizedBox(height: 15),
+
+              // กลับหน้าเลือกประเภท
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const Choseregister(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF65176C),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+                child: const Text(
+                  "กลับหน้าเลือกสมัครสมาชิก",
+                  style: TextStyle(fontSize: 20, color: Colors.white),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
+  // ✅ ฟังก์ชันบันทึกข้อมูลลง Firestore
   void registeruser() async {
     try {
       var db = FirebaseFirestore.instance;
-
       String? imageUrl;
 
-      // ✅ Upload ไป Supabase Storage
+      // ✅ Upload รูปโปรไฟล์ไป Supabase
       if (_profileImage != null) {
         final fileName = "profile_${DateTime.now().millisecondsSinceEpoch}.jpg";
-
         await SupabaseConfig.client.storage
-            .from("user_profiles") // 👈 bucket name
+            .from("user_profiles")
             .upload(fileName, _profileImage!);
-
         imageUrl = SupabaseConfig.client.storage
             .from("user_profiles")
             .getPublicUrl(fileName);
       }
 
-      final data = {
+      // ✅ สร้างข้อมูลผู้ใช้
+      final userData = {
         "name": nameController.text.trim(),
         "phone": phoneController.text.trim(),
         "email": emailController.text.trim(),
         "password": passwordController.text.trim(),
-        "address": addressController.text.trim(),
         "profileImage": imageUrl,
         "createdAt": DateTime.now(),
       };
 
-      await db.collection("users").add(data);
+      // ✅ เพิ่ม users
+      final userRef = await db.collection("users").add(userData);
+      final userId = userRef.id;
 
-      // ✅ แสดง Dialog ว่าสมัครสำเร็จ
+      // ✅ เพิ่ม address พร้อม lat/lng
+      if (addressController.text.isNotEmpty &&
+          selectedLat != null &&
+          selectedLng != null) {
+        await db.collection("addresses").add({
+          "userId": userId,
+          "address": addressController.text.trim(),
+          "lat": selectedLat,
+          "lng": selectedLng,
+          "createdAt": DateTime.now(),
+        });
+      }
+
+      // ✅ แสดงข้อความสำเร็จ
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -479,5 +287,39 @@ class _RegisteruserState extends State<Registeruser> {
         context,
       ).showSnackBar(SnackBar(content: Text("เกิดข้อผิดพลาด: $e")));
     }
+  }
+
+  // ✅ helper สร้าง input field
+  Widget _buildInput(
+    String label,
+    String hint,
+    TextEditingController ctrl, {
+    bool obscure = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.notoSansThai(color: Colors.white, fontSize: 16),
+          ),
+          TextField(
+            controller: ctrl,
+            obscureText: obscure,
+            decoration: InputDecoration(
+              hintText: hint,
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

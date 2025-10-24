@@ -1,9 +1,11 @@
+import 'package:delidash/page/addorder.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../page/profileuser.dart'; // ✅ import หน้าโปรไฟล์ผู้ใช้
+import '../page/profileuser.dart';
+import '../page/showwaitrider.dart'; // ✅ เพิ่ม import หน้านี้
 
 class Homepage extends StatefulWidget {
-  final String userId; // รับ userId จากหน้า Login
+  final String userId;
   const Homepage({super.key, required this.userId});
 
   @override
@@ -50,7 +52,7 @@ class _HomepageState extends State<Homepage> {
       backgroundColor: Colors.white,
       body: SafeArea(child: _buildHomeContent()),
 
-      // ✅ แท็บล่าง (Bottom Navigation Bar)
+      // ✅ แถบล่าง
       bottomNavigationBar: Container(
         height: 60,
         decoration: const BoxDecoration(
@@ -63,26 +65,21 @@ class _HomepageState extends State<Homepage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            // 🔹 ปุ่ม Home
             IconButton(
-              onPressed: () {
-                setState(() => _selectedIndex = 0);
-              },
+              onPressed: () => setState(() => _selectedIndex = 0),
               icon: Icon(
                 Icons.home,
                 color: _selectedIndex == 0 ? Colors.white : Colors.grey[400],
                 size: 28,
               ),
             ),
-
-            // 🔹 ปุ่ม Add
             IconButton(
               onPressed: () {
                 setState(() => _selectedIndex = 1);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("ฟีเจอร์เพิ่มข้อมูลยังไม่เปิดใช้งาน"),
-                    duration: Duration(seconds: 1),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AddOrderPage(userId: widget.userId),
                   ),
                 );
               },
@@ -92,18 +89,17 @@ class _HomepageState extends State<Homepage> {
                 size: 30,
               ),
             ),
-
-            // 🔹 ปุ่ม More → ไปหน้าโปรไฟล์ผู้ใช้
             IconButton(
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const ProfileUserPage(),
+                    builder: (context) =>
+                        ProfileUserPage(userId: widget.userId),
                   ),
                 );
               },
-              icon: Icon(Icons.more_horiz, color: Colors.white, size: 28),
+              icon: const Icon(Icons.more_horiz, color: Colors.white, size: 28),
             ),
           ],
         ),
@@ -111,12 +107,12 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
-  // ✅ หน้า Home หลัก
+  // ✅ หน้า Home แสดงข้อมูลจริงทั้งหมดของทุก order
   Widget _buildHomeContent() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header: รูป + ชื่อ + ที่อยู่
+        // 🔹 ส่วนหัวผู้ใช้
         Container(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -142,7 +138,7 @@ class _HomepageState extends State<Homepage> {
                     ),
                   ),
                   Text(
-                    userData?["address"] ?? "ไม่มีที่อยู่",
+                    userData?["phone"] ?? "ไม่มีเบอร์โทร",
                     style: const TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                 ],
@@ -153,34 +149,95 @@ class _HomepageState extends State<Homepage> {
 
         const Divider(),
 
-        // Section Orders
+        // 🔹 หัวข้อ Orders
         Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Text("Order", style: Theme.of(context).textTheme.titleLarge),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+          child: Text(
+            "รายการส่งสินค้าทั้งหมด",
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
         ),
 
+        // ✅ StreamBuilder ดึง order ทั้งหมดจาก Firestore
         Expanded(
-          child: ListView.builder(
-            itemCount: 3, // mock orders
-            itemBuilder: (context, index) {
-              return Card(
-                color: Colors.purple,
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: ListTile(
-                  leading: const Icon(Icons.inventory, color: Colors.white),
-                  title: Text(
-                    "Order #${46546 + index}",
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  subtitle: const Text(
-                    "date: 24/1/2002\nstatus: pending",
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                  trailing: ElevatedButton(
-                    onPressed: () {},
-                    child: const Text("Detail"),
-                  ),
-                ),
+          child: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('orders')
+                .snapshots(), // ✅ ไม่มี where แสดงทั้งหมด
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return const Center(child: Text("ยังไม่มีรายการส่งสินค้า"));
+              }
+
+              final orders = snapshot.data!.docs;
+
+              return ListView.builder(
+                itemCount: orders.length,
+                itemBuilder: (context, index) {
+                  final order =
+                      orders[index].data() as Map<String, dynamic>? ?? {};
+                  final productName =
+                      order['productName'] ??
+                      'ไม่มีชื่อสินค้า'; // ✅ แสดงชื่อสินค้า
+                  final productDetail =
+                      order['productDetail'] ?? 'ไม่มีรายละเอียด';
+                  final status = order['status'] ?? 'ไม่ทราบสถานะ';
+                  final receiver = order['receiverName'] ?? '-';
+                  final receiverAddress = order['receiverAddress'] ?? '-';
+                  final imageUrl = order['productImage'];
+
+                  return Card(
+                    color: Colors.purple,
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ListTile(
+                      onTap: () {
+                        // ✅ กดแล้วไปหน้า ShowwaitriderPage
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                ShowwaitriderPage(order: order),
+                          ),
+                        );
+                      },
+                      leading: imageUrl != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(6),
+                              child: Image.network(
+                                imageUrl,
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : const Icon(Icons.inventory, color: Colors.white),
+                      title: Text(
+                        productName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: Text(
+                        "👤 $receiver\n📍 $receiverAddress\n📝 $productDetail\nสถานะ: $status",
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  );
+                },
               );
             },
           ),
