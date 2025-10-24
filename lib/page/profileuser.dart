@@ -1,9 +1,48 @@
 import 'package:flutter/material.dart';
 import '../page/address.dart';
-import '../page/edit_profile.dart'; // ✅ import หน้าสำหรับแก้ไขโปรไฟล์
+import '../page/edit_profile.dart';
+import '../page/fritspage.dart';
+import '../page/homepage.dart';
 
-class ProfileUserPage extends StatelessWidget {
+class ProfileUserPage extends StatefulWidget {
   const ProfileUserPage({super.key});
+
+  @override
+  State<ProfileUserPage> createState() => _ProfileUserPageState();
+}
+
+class _ProfileUserPageState extends State<ProfileUserPage> {
+  int _selectedIndex = 2; // ปุ่ม More คือหน้าโปรไฟล์
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    switch (index) {
+      case 0:
+        // ไปหน้า Home
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const Homepage(userId: ''),
+          ), // ส่งค่า dummy
+        );
+        break;
+      case 1:
+        // Add
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("ฟีเจอร์เพิ่มข้อมูลยังไม่เปิดใช้งาน"),
+            duration: Duration(seconds: 1),
+          ),
+        );
+        break;
+      case 2:
+        // Already on Profile, ไม่มี action
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +57,7 @@ class ProfileUserPage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // 🔹 รูปโปรไฟล์และข้อมูลผู้ใช้
+            // รูปโปรไฟล์และข้อมูลผู้ใช้
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -26,16 +65,13 @@ class ProfileUserPage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 30,
-                    child: Icon(Icons.person, size: 40),
-                  ),
-                  const SizedBox(width: 16),
+                children: const [
+                  CircleAvatar(radius: 30, child: Icon(Icons.person, size: 40)),
+                  SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
                           'ชื่อ: โอกาโน่ ใจดีครับ',
                           style: TextStyle(fontSize: 16, color: Colors.white),
@@ -56,10 +92,9 @@ class ProfileUserPage extends StatelessWidget {
                 ],
               ),
             ),
-
             const SizedBox(height: 24),
 
-            // 🔹 ปุ่ม "แก้ไขโปรไฟล์"
+            // ปุ่มแก้ไขโปรไฟล์
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -76,7 +111,6 @@ class ProfileUserPage extends StatelessWidget {
                   style: TextStyle(fontSize: 16, color: Colors.white),
                 ),
                 onPressed: () {
-                  // ✅ ไปหน้า EditProfilePage
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -86,10 +120,9 @@ class ProfileUserPage extends StatelessWidget {
                 },
               ),
             ),
-
             const SizedBox(height: 16),
 
-            // 🔹 ปุ่ม "ที่อยู่"
+            // ปุ่มที่อยู่
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -101,7 +134,6 @@ class ProfileUserPage extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
-                  // ✅ ไปหน้า AddressPage
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -112,10 +144,9 @@ class ProfileUserPage extends StatelessWidget {
                 child: const Text('ที่อยู่', style: TextStyle(fontSize: 16)),
               ),
             ),
-
             const SizedBox(height: 16),
 
-            // 🔹 ปุ่ม "ออกจากระบบ"
+            // ปุ่มออกจากระบบ
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -127,7 +158,35 @@ class ProfileUserPage extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
-                  // TODO: เพิ่ม action ออกจากระบบภายหลัง
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('ออกจากระบบ'),
+                      content: const Text('คุณต้องการออกจากระบบหรือไม่?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('ยกเลิก'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const Fritspage(),
+                              ),
+                              (route) => false,
+                            );
+                          },
+                          child: const Text(
+                            'ออกจากระบบ',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
                 },
                 child: const Text(
                   'ออกจากระบบ',
@@ -138,16 +197,46 @@ class ProfileUserPage extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        backgroundColor: Colors.purple,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.purple[100],
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.add), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: ''),
-        ],
+
+      // Bottom Bar แบบ navigation
+      bottomNavigationBar: Container(
+        height: 60,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFD1A3FF), Color(0xFF5E17EB)],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            IconButton(
+              onPressed: () => _onItemTapped(0),
+              icon: Icon(
+                Icons.home,
+                color: _selectedIndex == 0 ? Colors.white : Colors.grey[400],
+                size: 28,
+              ),
+            ),
+            IconButton(
+              onPressed: () => _onItemTapped(1),
+              icon: Icon(
+                Icons.add,
+                color: _selectedIndex == 1 ? Colors.white : Colors.grey[400],
+                size: 30,
+              ),
+            ),
+            IconButton(
+              onPressed: () => _onItemTapped(2),
+              icon: Icon(
+                Icons.more_horiz,
+                color: _selectedIndex == 2 ? Colors.white : Colors.grey[400],
+                size: 28,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
