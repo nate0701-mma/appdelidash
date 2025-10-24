@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'profile_rider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class WorkRiderPage extends StatefulWidget {
-  const WorkRiderPage({Key? key}) : super(key: key);
+  final String riderId; // รับ userId จากหน้า Login
+  const WorkRiderPage({super.key, required this.riderId});
 
   @override
   State<WorkRiderPage> createState() => _WorkRiderPageState();
@@ -11,6 +14,33 @@ class WorkRiderPage extends StatefulWidget {
 
 class _WorkRiderPageState extends State<WorkRiderPage> {
   int _selectedIndex = 0;
+  Map<String, dynamic>? riderData;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserData();
+  }
+
+  // ✅ ดึงข้อมูลผู้ใช้จาก Firestore
+  void fetchUserData() async {
+    try {
+      var doc = await FirebaseFirestore.instance
+          .collection("riders")
+          .doc(widget.riderId)
+          .get();
+
+      if (doc.exists) {
+        setState(() {
+          riderData = doc.data();
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error fetching user data: $e");
+    }
+  }
 
   final List<Map<String, String>> orders = [
     {
@@ -44,7 +74,10 @@ class _WorkRiderPageState extends State<WorkRiderPage> {
     return Scaffold(
       body: IndexedStack(
         index: _selectedIndex,
-        children: [_buildWorkPage(), const ProfileRiderPage()],
+        children: [
+          _buildWorkPage(),
+          ProfileRiderPage(riderId: widget.riderId),
+        ],
       ),
 
       // ✅ BottomNavigationBar
@@ -127,24 +160,36 @@ class _WorkRiderPageState extends State<WorkRiderPage> {
                 child: Row(
                   children: [
                     CircleAvatar(
-                      radius: 24,
-                      backgroundColor: const Color.fromARGB(255, 215, 190, 245),
-                      child: const Icon(
-                        Icons.person,
-                        color: Color.fromARGB(255, 223, 222, 222),
-                      ),
+                      radius: 35,
+                      backgroundImage: riderData?["profileImage"] != null
+                          ? NetworkImage(riderData!["profileImage"])
+                          : null,
+                      child: riderData?["profileImage"] == null
+                          ? const Icon(Icons.person, size: 40)
+                          : null,
                     ),
                     const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'ไรเดอร์: โคทาโร่ โคกิมจิ',
-                        style: GoogleFonts.notoSansThai(
-                          textStyle: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                    Row(
+                      children: [
+                        Text(
+                          "ไรเดอร์ :",
+                          style: GoogleFonts.notoSansThai(
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                      ),
+                        Text(
+                          riderData?["name"] ?? "ไม่มีชื่อ",
+                          style: GoogleFonts.notoSansThai(
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

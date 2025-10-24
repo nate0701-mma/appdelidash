@@ -57,12 +57,15 @@ class _LoginpageState extends State<Loginpage> {
       if (riderSnapshot.docs.isNotEmpty) {
         final doc = riderSnapshot.docs.first;
         final data = doc.data();
+        final riderId = doc.id;
 
         if (data["password"] == passwordController.text.trim()) {
           Navigator.popUntil(context, (route) => route.isFirst);
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const WorkRiderPage()),
+            MaterialPageRoute(
+              builder: (context) => WorkRiderPage(riderId: riderId),
+            ),
           );
           return;
         } else {

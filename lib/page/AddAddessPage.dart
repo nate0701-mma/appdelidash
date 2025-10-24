@@ -58,7 +58,7 @@ class _AddAddressPageState extends State<AddAddressPage> {
                     children: [
                       TileLayer(
                         urlTemplate:
-                            'https://tile.thunderforest.com/atlas/{z}/{x}/{y}.png?apikey=b21c118534bb44cebc91a85e81999b28',
+                            'https://tile.thunderforest.com/neighbourhood/{z}/{x}/{y}.png?apikey=b21c118534bb44cebc91a85e81999b28',
                         userAgentPackageName: 'com.example.delidash',
                       ),
                       MarkerLayer(
