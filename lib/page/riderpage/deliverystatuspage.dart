@@ -1,14 +1,162 @@
+import 'dart:async';
+import 'dart:io';
+import 'package:delidash/page/riderpage/work_rider.dart';
 import 'package:flutter/material.dart';
-import 'productdetailpage.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:delidash/supabase_config.dart';
 
 class DeliveryStatusPage extends StatefulWidget {
-  const DeliveryStatusPage({super.key});
+  final String orderId;
+  final String riderId;
+  final LatLng senderLatLng;
+  final LatLng receiverLatLng;
+
+  const DeliveryStatusPage({
+    super.key,
+    required this.orderId,
+    required this.riderId,
+    required this.senderLatLng,
+    required this.receiverLatLng,
+  });
 
   @override
   State<DeliveryStatusPage> createState() => _DeliveryStatusPageState();
 }
 
 class _DeliveryStatusPageState extends State<DeliveryStatusPage> {
+  final ImagePicker _picker = ImagePicker();
+  LatLng? riderPosition;
+  StreamSubscription<Position>? _positionStream;
+  String thunderforestApiKey =
+      "https://tile.thunderforest.com/neighbourhood/{z}/{x}/{y}.png?apikey=b21c118534bb44cebc91a85e81999b28"; // ใส่ของคุณ
+
+  @override
+  void initState() {
+    super.initState();
+    _startRiderLocationUpdates();
+    listenToRiderRealtime();
+  }
+
+  @override
+  void dispose() {
+    _positionStream?.cancel();
+    super.dispose();
+  }
+
+  // 🔹 อัปเดตตำแหน่งไรเดอร์แบบอัตโนมัติทุก 10 วิ
+  Future<void> _startRiderLocationUpdates() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      await Geolocator.openLocationSettings();
+      return;
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    _positionStream =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 5,
+          ),
+        ).listen((Position pos) async {
+          setState(() {
+            riderPosition = LatLng(pos.latitude, pos.longitude);
+          });
+
+          await FirebaseFirestore.instance
+              .collection('riders')
+              .doc(widget.riderId)
+              .update({
+                'location': {'lat': pos.latitude, 'lng': pos.longitude},
+                'updatedAt': FieldValue.serverTimestamp(),
+              });
+        });
+  }
+
+  // 🔹 ติดตามตำแหน่งไรเดอร์แบบเรียลไทม์ (แสดงบนแผนที่)
+  void listenToRiderRealtime() {
+    FirebaseFirestore.instance
+        .collection('riders')
+        .doc(widget.riderId)
+        .snapshots()
+        .listen((doc) {
+          if (doc.exists) {
+            final data = doc.data();
+            if (data?['location'] != null) {
+              setState(() {
+                riderPosition = LatLng(
+                  data!['location']['lat'],
+                  data['location']['lng'],
+                );
+              });
+            }
+          }
+        });
+  }
+
+  // 🔹 อัปโหลดรูปขึ้น Supabase และอัปเดตสถานะใน Firestore
+  Future<void> uploadPhotoAndUpdateStatus(String type) async {
+    try {
+      final picked = await _picker.pickImage(source: ImageSource.camera);
+      if (picked == null) return;
+
+      final file = File(picked.path);
+      final fileName =
+          "${widget.orderId}_${type}_${DateTime.now().millisecondsSinceEpoch}.jpg";
+
+      // ✅ Upload to Supabase
+      await SupabaseConfig.client.storage
+          .from("delivery_photos")
+          .upload(fileName, file);
+
+      final imageUrl = SupabaseConfig.client.storage
+          .from("delivery_photos")
+          .getPublicUrl(fileName);
+
+      // ✅ Update status
+      String newStatus = type == "pickup"
+          ? "ไรเดอร์รับของแล้ว"
+          : "จัดส่งสำเร็จ";
+
+      await FirebaseFirestore.instance
+          .collection('orders')
+          .doc(widget.orderId)
+          .update({
+            '${type}Image': imageUrl,
+            'status': newStatus,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("✅ อัปโหลดรูปและอัปเดตสถานะ: $newStatus")),
+      );
+
+      if (type == "delivered" && mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (_) => WorkRiderPage(riderId: widget.riderId),
+          ),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("เกิดข้อผิดพลาด: $e")));
+    }
+  }
+
+  // 🔹 แสดงแมพ + จุดผู้ส่ง ผู้รับ และไรเดอร์
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,114 +174,61 @@ class _DeliveryStatusPageState extends State<DeliveryStatusPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // แถบสถานะ (ไอคอน 4 อัน)
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              height: 250,
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(50),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 5,
-                    offset: const Offset(0, 3),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              clipBehavior: Clip.hardEdge,
+              child: FlutterMap(
+                options: MapOptions(
+                  initialCenter: widget.senderLatLng,
+                  initialZoom: 13,
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate:
+                        "https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=$thunderforestApiKey",
+                    userAgentPackageName: 'com.example.deliveryapp',
+                  ),
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: widget.senderLatLng,
+                        width: 40,
+                        height: 40,
+                        child: const Icon(Icons.store, color: Colors.blue),
+                      ),
+                      Marker(
+                        point: widget.receiverLatLng,
+                        width: 40,
+                        height: 40,
+                        child: const Icon(Icons.home, color: Colors.green),
+                      ),
+                      if (riderPosition != null)
+                        Marker(
+                          point: riderPosition!,
+                          width: 45,
+                          height: 45,
+                          child: const Icon(
+                            Icons.motorcycle,
+                            color: Colors.red,
+                            size: 35,
+                          ),
+                        ),
+                    ],
                   ),
                 ],
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: const [
-                  Icon(Icons.event_note, color: Colors.black54),
-                  Icon(Icons.check_circle, color: Colors.green, size: 30),
-                  Icon(Icons.local_shipping, color: Colors.black54),
-                  Icon(Icons.home, color: Colors.black54),
-                ],
-              ),
             ),
-
-            const SizedBox(height: 16),
-
-            // แผนที่จำลอง
-            ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: Image.asset(
-                'assets/map_placeholder.png', // แทนรูปแผนที่
-                height: 200,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-            ),
-
             const SizedBox(height: 20),
 
-            // ปุ่มอัปโหลดภาพ
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildPhotoSection('ภาพขณะรับสินค้า'),
-                _buildPhotoSection('ภาพขณะส่งเสร็จสิ้น'),
+                _buildPhotoSection('ภาพขณะรับของ', 'pickup'),
+                _buildPhotoSection('ภาพขณะส่งเสร็จสิ้น', 'delivered'),
               ],
-            ),
-
-            const SizedBox(height: 20),
-
-            // กล่องข้อมูลผู้ส่ง-ผู้รับ
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 5,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '📍 ผู้ส่งสินค้า',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 4),
-                  Text('ชื่อผู้ส่ง: Nate'),
-                  Text('เบอร์โทร: 0869999999'),
-                  SizedBox(height: 12),
-                  Text(
-                    '🛒 ผู้รับสินค้า',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 4),
-                  Text('ชื่อผู้รับ: Tangkwa'),
-                  Text('เบอร์โทร: 0645555555'),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // ปุ่มข้อมูลสินค้า
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ProductDetailPage()),
-                );
-              },
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-                child: Text('ข้อมูลสินค้า'),
-              ),
             ),
           ],
         ),
@@ -141,7 +236,7 @@ class _DeliveryStatusPageState extends State<DeliveryStatusPage> {
     );
   }
 
-  Widget _buildPhotoSection(String label) {
+  Widget _buildPhotoSection(String label, String type) {
     return Column(
       children: [
         Container(
@@ -170,7 +265,7 @@ class _DeliveryStatusPageState extends State<DeliveryStatusPage> {
               borderRadius: BorderRadius.circular(20),
             ),
           ),
-          onPressed: () {},
+          onPressed: () => uploadPhotoAndUpdateStatus(type),
           child: const Text('ส่ง'),
         ),
       ],

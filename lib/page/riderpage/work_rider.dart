@@ -5,7 +5,7 @@ import '../riderpage/orderdetail.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class WorkRiderPage extends StatefulWidget {
-  final String riderId; // รับ userId จากหน้า Login
+  final String riderId;
   const WorkRiderPage({super.key, required this.riderId});
 
   @override
@@ -23,7 +23,7 @@ class _WorkRiderPageState extends State<WorkRiderPage> {
     fetchUserData();
   }
 
-  // ดึงข้อมูลผู้ใช้จาก Firestore
+  // 🔹 ดึงข้อมูลไรเดอร์จาก Firestore
   void fetchUserData() async {
     try {
       var doc = await FirebaseFirestore.instance
@@ -38,31 +38,9 @@ class _WorkRiderPageState extends State<WorkRiderPage> {
         });
       }
     } catch (e) {
-      debugPrint("Error fetching user data: $e");
+      debugPrint("Error fetching rider data: $e");
     }
   }
-
-  // ตัวอย่างออร์เดอร์
-  final List<Map<String, String>> orders = [
-    {
-      'order': '#0056',
-      'product': 'IPHONE 17',
-      'detail': 'เสริมไทย → ฑิฆัมพร2',
-      'image': 'assets/iphone17.png',
-    },
-    {
-      'order': '#0057',
-      'product': 'IPHONE 16',
-      'detail': 'เสริมไทย → คณะIT มมส.ใหม่',
-      'image': 'assets/iphone16.png',
-    },
-    {
-      'order': '#0058',
-      'product': 'IPHONE 15',
-      'detail': 'เสริมไทย → หอพัก the best',
-      'image': 'assets/iphone15.png',
-    },
-  ];
 
   void _onTap(int index) {
     setState(() {
@@ -80,8 +58,6 @@ class _WorkRiderPageState extends State<WorkRiderPage> {
           ProfileRiderPage(riderId: widget.riderId),
         ],
       ),
-
-      // BottomNavigationBar
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onTap,
@@ -128,9 +104,7 @@ class _WorkRiderPageState extends State<WorkRiderPage> {
     );
   }
 
-  // ------------------------
-  // หน้า Work (ออร์เดอร์)
-  // ------------------------
+  // 🔹 หน้าแสดงออร์เดอร์ทั้งหมดจาก Firestore
   Widget _buildWorkPage() {
     return Container(
       color: const Color(0xFFF0EAF7),
@@ -150,7 +124,6 @@ class _WorkRiderPageState extends State<WorkRiderPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(0),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black12,
@@ -176,19 +149,15 @@ class _WorkRiderPageState extends State<WorkRiderPage> {
                         Text(
                           "ไรเดอร์ : ",
                           style: GoogleFonts.notoSansThai(
-                            textStyle: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         Text(
                           riderData?["name"] ?? "ไม่มีชื่อ",
                           style: GoogleFonts.notoSansThai(
-                            textStyle: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -198,7 +167,7 @@ class _WorkRiderPageState extends State<WorkRiderPage> {
               ),
             ),
 
-            // ส่วนหัวรายการ
+            // หัวข้อ
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Text(
@@ -213,104 +182,141 @@ class _WorkRiderPageState extends State<WorkRiderPage> {
             ),
             const SizedBox(height: 12),
 
-            // รายการออร์เดอร์
+            // ✅ ดึงจาก Firestore (orders)
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: orders.length,
-                itemBuilder: (context, index) {
-                  var order = orders[index];
-                  return Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              color: Colors.grey[300],
-                              image: DecorationImage(
-                                image: AssetImage(order['image']!),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Order ${order['order']}',
-                                  style: GoogleFonts.notoSansThai(
-                                    textStyle: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),
-                                  ),
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('orders')
+                    .where(
+                      'status',
+                      isEqualTo: 'รอจัดส่ง',
+                    ) // เฉพาะที่ยังไม่ถูกไรเดอร์รับ
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(
+                      child: Text("ยังไม่มีงานให้รับในขณะนี้"),
+                    );
+                  }
+
+                  final orders = snapshot.data!.docs;
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: orders.length,
+                    itemBuilder: (context, index) {
+                      final order =
+                          orders[index].data() as Map<String, dynamic>;
+                      final productName =
+                          order['productName'] ?? 'ไม่ระบุสินค้า';
+                      final productDetail = order['productDetail'] ?? '';
+                      final receiver = order['receiverName'] ?? '';
+                      final receiverAddress = order['receiverAddress'] ?? '';
+                      final imageUrl = order['productImage'];
+
+                      return Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  color: Colors.grey[300],
+                                  image: imageUrl != null
+                                      ? DecorationImage(
+                                          image: NetworkImage(imageUrl),
+                                          fit: BoxFit.cover,
+                                        )
+                                      : null,
                                 ),
-                                Text(
-                                  order['product']!,
-                                  style: GoogleFonts.notoSansThai(
-                                    textStyle: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                Text(
-                                  order['detail']!,
-                                  style: GoogleFonts.notoSansThai(
-                                    textStyle: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF6B4C8D),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    minimumSize: const Size(100, 40),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 8,
-                                    ),
-                                  ),
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            OrderDetailPage(order: order),
-                                      ),
-                                    );
-                                  },
-                                  child: Text(
-                                    'รับงาน',
-                                    style: GoogleFonts.notoSansThai(
-                                      textStyle: const TextStyle(
+                                child: imageUrl == null
+                                    ? const Icon(
+                                        Icons.inventory,
                                         color: Colors.white,
-                                        fontWeight: FontWeight.bold,
+                                      )
+                                    : null,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      productName,
+                                      style: GoogleFonts.notoSansThai(
+                                        textStyle: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
-                                  ),
+                                    Text(
+                                      'ไปยัง: $receiverAddress',
+                                      style: GoogleFonts.notoSansThai(
+                                        textStyle: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(
+                                          0xFF6B4C8D,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        minimumSize: const Size(100, 40),
+                                      ),
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => OrderDetailPage(
+                                              order: {
+                                                ...order,
+                                                'orderId': orders[index].id,
+                                                'riderId': widget
+                                                    .riderId, // ✅ ส่งค่าไอดีไรเดอร์มาด้วย
+                                              },
+                                            ),
+                                          ),
+                                        );
+                                      },
+
+                                      child: Text(
+                                        'รับงาน',
+                                        style: GoogleFonts.notoSansThai(
+                                          textStyle: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      );
+                    },
                   );
                 },
               ),
