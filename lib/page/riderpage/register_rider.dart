@@ -97,6 +97,7 @@ class _RegisterRiderPageState extends State<RegisterRiderPage> {
     );
   }
 
+  // ฟังก์ชันสมัครไรเดอร์ (เวอร์ชันตรวจสอบว่าต้องมี user ก่อน)
   void _registerRider() async {
     if (nameController.text.isEmpty ||
         phoneController.text.isEmpty ||
@@ -121,9 +122,37 @@ class _RegisterRiderPageState extends State<RegisterRiderPage> {
     }
 
     try {
+      final firestore = FirebaseFirestore.instance;
+
+      // ✅ ตรวจสอบว่ามี user ที่ใช้เบอร์นี้อยู่หรือยัง
+      final existingUser = await firestore
+          .collection('users')
+          .where('phone', isEqualTo: phoneController.text.trim())
+          .get();
+
+      if (existingUser.docs.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("ต้องสมัครเป็นผู้ใช้ระบบ (User) ก่อน")),
+        );
+        return;
+      }
+
+      // ✅ ตรวจสอบว่ามี rider เบอร์นี้อยู่แล้วไหม
+      final existingRider = await firestore
+          .collection('riders')
+          .where('phone', isEqualTo: phoneController.text.trim())
+          .get();
+
+      if (existingRider.docs.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("เบอร์นี้สมัครเป็นไรเดอร์แล้ว")),
+        );
+        return;
+      }
+
       String? profileImageUrl;
 
-      // Upload รูปโปรไฟล์ไป Supabase
+      // ✅ Upload รูปโปรไฟล์ไป Supabase
       if (_profileImage != null) {
         final bytes = await _profileImage!.readAsBytes();
         final fileName = "profile_${DateTime.now().millisecondsSinceEpoch}.jpg";
@@ -137,7 +166,7 @@ class _RegisterRiderPageState extends State<RegisterRiderPage> {
             .getPublicUrl(fileName);
       }
 
-      // เก็บข้อมูล Rider ลง Firestore
+      // ✅ เก็บข้อมูล Rider ลง Firestore
       final data = {
         "name": nameController.text.trim(),
         "phone": phoneController.text.trim(),
@@ -149,7 +178,7 @@ class _RegisterRiderPageState extends State<RegisterRiderPage> {
         "createdAt": DateTime.now(),
       };
 
-      await FirebaseFirestore.instance.collection("riders").add(data);
+      await firestore.collection("riders").add(data);
 
       showDialog(
         context: context,

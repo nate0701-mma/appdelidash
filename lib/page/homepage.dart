@@ -1,8 +1,10 @@
 import 'package:delidash/page/addorder.dart';
+import 'package:delidash/page/receiver_order_page.dart';
+import 'package:delidash/page/shipment_map_page.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../page/profileuser.dart';
-import '../page/showwaitrider.dart'; // ✅ เพิ่ม import หน้านี้
+import '../page/showwaitrider.dart';
 
 class Homepage extends StatefulWidget {
   final String userId;
@@ -107,7 +109,7 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
-  // ✅ หน้า Home แสดงข้อมูลจริงทั้งหมดของทุก order
+  // ✅ หน้า Home แสดงข้อมูล order ของผู้ใช้คนนั้นเท่านั้น
   Widget _buildHomeContent() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,6 +148,57 @@ class _HomepageState extends State<Homepage> {
             ],
           ),
         ),
+        Container(
+          padding: const EdgeInsets.all(16),
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.purple,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            ),
+            icon: const Icon(Icons.map, color: Colors.white),
+            label: const Text(
+              "ดูแผนที่การจัดส่งทั้งหมด",
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ShipmentMapPage(userId: widget.userId),
+                ),
+              );
+            },
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.all(16),
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            ),
+            icon: const Icon(Icons.inventory_2, color: Colors.white),
+            label: const Text(
+              "ดูของที่ต้องรับทั้งหมด",
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ReceiverOrderPage(userId: widget.userId),
+                ),
+              );
+            },
+          ),
+        ),
 
         const Divider(),
 
@@ -153,17 +206,19 @@ class _HomepageState extends State<Homepage> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
           child: Text(
-            "รายการส่งสินค้าทั้งหมด",
+            "รายการส่งสินค้าของฉัน",
             style: Theme.of(context).textTheme.titleLarge,
           ),
         ),
 
-        // ✅ StreamBuilder ดึง order ทั้งหมดจาก Firestore
+        // ✅ StreamBuilder ดึง order ของผู้ใช้คนนั้นจาก Firestore
         Expanded(
           child: StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
                 .collection('orders')
-                .snapshots(), // ✅ ไม่มี where แสดงทั้งหมด
+                .where('senderId', isEqualTo: widget.userId) // ✅ เฉพาะของตัวเอง
+                .orderBy('createdAt', descending: true)
+                .snapshots(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -180,9 +235,7 @@ class _HomepageState extends State<Homepage> {
                 itemBuilder: (context, index) {
                   final order =
                       orders[index].data() as Map<String, dynamic>? ?? {};
-                  final productName =
-                      order['productName'] ??
-                      'ไม่มีชื่อสินค้า'; // ✅ แสดงชื่อสินค้า
+                  final productName = order['productName'] ?? 'ไม่มีชื่อสินค้า';
                   final productDetail =
                       order['productDetail'] ?? 'ไม่มีรายละเอียด';
                   final status = order['status'] ?? 'ไม่ทราบสถานะ';
@@ -201,12 +254,12 @@ class _HomepageState extends State<Homepage> {
                     ),
                     child: ListTile(
                       onTap: () {
-                        // ✅ กดแล้วไปหน้า ShowwaitriderPage
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                ShowwaitriderPage(order: order),
+                            builder: (context) => ShowwaitriderPage(
+                              orderId: orders[index].id, // ✅ ใช้ doc.id
+                            ),
                           ),
                         );
                       },

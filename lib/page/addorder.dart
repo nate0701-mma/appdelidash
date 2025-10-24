@@ -15,8 +15,7 @@ class AddOrderPage extends StatefulWidget {
 
 class _AddOrderPageState extends State<AddOrderPage> {
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _nameController =
-      TextEditingController(); // ✅ เพิ่มช่องชื่อสินค้า
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _detailController = TextEditingController();
 
   Map<String, dynamic>? senderAddress;
@@ -28,7 +27,7 @@ class _AddOrderPageState extends State<AddOrderPage> {
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage() async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery);
+    final picked = await _picker.pickImage(source: ImageSource.camera);
     if (picked != null) {
       setState(() => _imageFile = File(picked.path));
     }
@@ -46,6 +45,7 @@ class _AddOrderPageState extends State<AddOrderPage> {
     }
   }
 
+  /// ✅ ดึงผู้รับพร้อมที่อยู่ทั้งหมดจาก Firestore
   Future<void> _searchReceiver() async {
     final phone = _phoneController.text.trim();
     if (phone.isEmpty) {
@@ -62,21 +62,58 @@ class _AddOrderPageState extends State<AddOrderPage> {
     });
 
     try {
-      final query = await FirebaseFirestore.instance
+      final userQuery = await FirebaseFirestore.instance
           .collection('users')
           .where('phone', isGreaterThanOrEqualTo: phone)
           .where('phone', isLessThanOrEqualTo: "$phone\uf8ff")
           .get();
 
-      if (query.docs.isNotEmpty) {
-        setState(() {
-          receiverList = query.docs.map((e) => e.data()).toList();
-        });
-      } else {
+      if (userQuery.docs.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("ไม่พบผู้รับที่ตรงกับเบอร์โทร")),
         );
+        setState(() => isLoading = false);
+        return;
       }
+
+      List<Map<String, dynamic>> tempList = [];
+
+      for (var userDoc in userQuery.docs) {
+        final userData = userDoc.data();
+        final userId = userDoc.id;
+
+        // 🔹 ดึงทุกที่อยู่ของผู้ใช้คนนั้นจาก addresses
+        final addrQuery = await FirebaseFirestore.instance
+            .collection('addresses')
+            .where('userId', isEqualTo: userId)
+            .get();
+
+        if (addrQuery.docs.isNotEmpty) {
+          for (var addrDoc in addrQuery.docs) {
+            final addrData = addrDoc.data();
+            tempList.add({
+              'userId': userId,
+              'name': userData['name'] ?? '-',
+              'phone': userData['phone'] ?? '-',
+              'address': addrData['address'] ?? 'ไม่มีที่อยู่',
+              'lat': addrData['lat'],
+              'lng': addrData['lng'],
+            });
+          }
+        } else {
+          // ถ้าไม่มี address ให้โชว์เฉพาะข้อมูลผู้ใช้
+          tempList.add({
+            'userId': userId,
+            'name': userData['name'] ?? '-',
+            'phone': userData['phone'] ?? '-',
+            'address': 'ไม่มีที่อยู่ในระบบ',
+            'lat': null,
+            'lng': null,
+          });
+        }
+      }
+
+      setState(() => receiverList = tempList);
     } catch (e) {
       ScaffoldMessenger.of(
         context,
@@ -102,6 +139,7 @@ class _AddOrderPageState extends State<AddOrderPage> {
     }
   }
 
+  /// ✅ บันทึกคำสั่งซื้อ
   Future<void> _sendOrder() async {
     if (senderAddress == null || selectedReceiver == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -132,10 +170,15 @@ class _AddOrderPageState extends State<AddOrderPage> {
         'senderAddress': senderAddress!['address'],
         'senderLat': senderAddress!['lat'],
         'senderLng': senderAddress!['lng'],
+
+        'receiverId': selectedReceiver!['userId'],
         'receiverName': selectedReceiver!['name'] ?? '',
         'receiverPhone': selectedReceiver!['phone'] ?? '',
         'receiverAddress': selectedReceiver!['address'] ?? 'ไม่พบที่อยู่',
-        'productName': _nameController.text.trim(), // ✅ เก็บชื่อสินค้า
+        'receiverLat': selectedReceiver!['lat'],
+        'receiverLng': selectedReceiver!['lng'],
+
+        'productName': _nameController.text.trim(),
         'productDetail': _detailController.text.trim(),
         'productImage': imageUrl,
         'status': 'รอจัดส่ง',
@@ -152,7 +195,7 @@ class _AddOrderPageState extends State<AddOrderPage> {
         selectedReceiver = null;
         receiverList = [];
         _phoneController.clear();
-        _nameController.clear(); // ✅ ล้างช่องชื่อสินค้า
+        _nameController.clear();
         _detailController.clear();
       });
     } catch (e) {
