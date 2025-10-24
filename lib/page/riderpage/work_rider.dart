@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'profile_rider.dart';
+import '../riderpage/profile_rider.dart';
+import '../riderpage/orderdetail.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class WorkRiderPage extends StatefulWidget {
   final String riderId; // รับ userId จากหน้า Login
@@ -23,7 +23,7 @@ class _WorkRiderPageState extends State<WorkRiderPage> {
     fetchUserData();
   }
 
-  // ✅ ดึงข้อมูลผู้ใช้จาก Firestore
+  // ดึงข้อมูลผู้ใช้จาก Firestore
   void fetchUserData() async {
     try {
       var doc = await FirebaseFirestore.instance
@@ -42,23 +42,24 @@ class _WorkRiderPageState extends State<WorkRiderPage> {
     }
   }
 
+  // ตัวอย่างออร์เดอร์
   final List<Map<String, String>> orders = [
     {
       'order': '#0056',
       'product': 'IPHONE 17',
-      'detail': 'เสริมไทย — ฑิฆัมพร2',
+      'detail': 'เสริมไทย → ฑิฆัมพร2',
       'image': 'assets/iphone17.png',
     },
     {
       'order': '#0057',
       'product': 'IPHONE 16',
-      'detail': 'เสริมไทย — คณะIT มมส.ใหม่',
+      'detail': 'เสริมไทย → คณะIT มมส.ใหม่',
       'image': 'assets/iphone16.png',
     },
     {
       'order': '#0058',
       'product': 'IPHONE 15',
-      'detail': 'เสริมไทย — หอพัก the best',
+      'detail': 'เสริมไทย → หอพัก the best',
       'image': 'assets/iphone15.png',
     },
   ];
@@ -80,7 +81,7 @@ class _WorkRiderPageState extends State<WorkRiderPage> {
         ],
       ),
 
-      // ✅ BottomNavigationBar
+      // BottomNavigationBar
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onTap,
@@ -137,6 +138,7 @@ class _WorkRiderPageState extends State<WorkRiderPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header Rider Info
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,
@@ -160,19 +162,19 @@ class _WorkRiderPageState extends State<WorkRiderPage> {
                 child: Row(
                   children: [
                     CircleAvatar(
-                      radius: 35,
+                      radius: 28,
                       backgroundImage: riderData?["profileImage"] != null
                           ? NetworkImage(riderData!["profileImage"])
                           : null,
                       child: riderData?["profileImage"] == null
-                          ? const Icon(Icons.person, size: 40)
+                          ? const Icon(Icons.person, size: 32)
                           : null,
                     ),
                     const SizedBox(width: 12),
                     Row(
                       children: [
                         Text(
-                          "ไรเดอร์ :",
+                          "ไรเดอร์ : ",
                           style: GoogleFonts.notoSansThai(
                             textStyle: const TextStyle(
                               fontSize: 16,
@@ -256,15 +258,19 @@ class _WorkRiderPageState extends State<WorkRiderPage> {
                                 Text(
                                   order['product']!,
                                   style: GoogleFonts.notoSansThai(
-                                    textStyle: const TextStyle(fontSize: 14),
-                                    fontWeight: FontWeight.bold,
+                                    textStyle: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                                 Text(
                                   order['detail']!,
                                   style: GoogleFonts.notoSansThai(
-                                    textStyle: const TextStyle(fontSize: 12),
-                                    fontWeight: FontWeight.bold,
+                                    textStyle: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(height: 8),
@@ -281,7 +287,13 @@ class _WorkRiderPageState extends State<WorkRiderPage> {
                                     ),
                                   ),
                                   onPressed: () {
-                                    // logic รับงาน
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            OrderDetailPage(order: order),
+                                      ),
+                                    );
                                   },
                                   child: Text(
                                     'รับงาน',
