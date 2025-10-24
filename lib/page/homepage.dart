@@ -15,6 +15,19 @@ class _HomepageState extends State<Homepage> {
   bool isLoading = true;
   int _selectedIndex = 0;
 
+  final List<Map<String, dynamic>> orders = [
+    {"id": 1001, "date": "24/10/2025", "status": "pending"},
+    {"id": 1002, "date": "23/10/2025", "status": "completed"},
+    {"id": 1003, "date": "22/10/2025", "status": "in progress"},
+    {"id": 1004, "date": "21/10/2025", "status": "cancelled"},
+    {"id": 1005, "date": "20/10/2025", "status": "pending"},
+    {"id": 1006, "date": "19/10/2025", "status": "completed"},
+    {"id": 1007, "date": "18/10/2025", "status": "pending"},
+    {"id": 1008, "date": "17/10/2025", "status": "completed"},
+    {"id": 1009, "date": "16/10/2025", "status": "in progress"},
+    {"id": 1010, "date": "15/10/2025", "status": "pending"},
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -103,7 +116,7 @@ class _HomepageState extends State<Homepage> {
                   ),
                 );
               },
-              icon: Icon(Icons.more_horiz, color: Colors.white, size: 28),
+              icon: const Icon(Icons.more_horiz, color: Colors.white, size: 28),
             ),
           ],
         ),
@@ -156,28 +169,42 @@ class _HomepageState extends State<Homepage> {
         // Section Orders
         Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Text("Order", style: Theme.of(context).textTheme.titleLarge),
+          child: Text("Orders", style: Theme.of(context).textTheme.titleLarge),
         ),
 
         Expanded(
           child: ListView.builder(
-            itemCount: 3, // mock orders
+            itemCount: orders.length,
             itemBuilder: (context, index) {
+              final order = orders[index];
               return Card(
                 color: Colors.purple,
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: ListTile(
                   leading: const Icon(Icons.inventory, color: Colors.white),
                   title: Text(
-                    "Order #${46546 + index}",
+                    "Order #${order['id']}",
                     style: const TextStyle(color: Colors.white),
                   ),
-                  subtitle: const Text(
-                    "date: 24/1/2002\nstatus: pending",
-                    style: TextStyle(color: Colors.white70),
+                  subtitle: Text(
+                    "date: ${order['date']}\nstatus: ${order['status']}",
+                    style: const TextStyle(color: Colors.white70),
                   ),
                   trailing: ElevatedButton(
-                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.purple,
+                    ),
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            "ดูรายละเอียดของ Order #${order['id']}",
+                          ),
+                          duration: const Duration(seconds: 1),
+                        ),
+                      );
+                    },
                     child: const Text("Detail"),
                   ),
                 ),
