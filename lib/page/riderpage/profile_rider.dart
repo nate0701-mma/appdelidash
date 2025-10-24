@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:delidash/page/Fritspage.dart';
+import 'package:delidash/page/riderpage/editprofilerider.dart';
 
 class ProfileRiderPage extends StatefulWidget {
   final String riderId; // รับค่า riderId จากหน้า WorkRiderPage
@@ -167,7 +168,12 @@ class _ProfileRiderPageState extends State<ProfileRiderPage> {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                     onPressed: () {
-                      // TODO: เพิ่มหน้าแก้ไขโปรไฟล์
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const EditProfileRiderPage(),
+                        ),
+                      );
                     },
                     child: Text(
                       'แก้ไขโปรไฟล์',
