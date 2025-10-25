@@ -439,7 +439,7 @@ class _AddOrderPageState extends State<AddOrderPage> {
               child: ElevatedButton(
                 onPressed: isLoading ? null : _sendOrder,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.purple[900],
+                  backgroundColor: const Color.fromARGB(255, 241, 83, 255),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 child: isLoading
